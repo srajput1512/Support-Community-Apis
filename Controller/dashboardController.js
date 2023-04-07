@@ -14,5 +14,22 @@ module.exports = {
 
 },
 
+  //Get all threads by thread id 
+  getAllThreadsByID: (req, res, next) => {
+
+    let threadId = req.query.threadId;
+
+    let dashboardModule = require('../Module/dashboardModule');
+
+    dashboardModule.getAllThreadsByID(threadId).then((result) => {
+        res.send(result);
+
+    }).catch((err) => {
+        res.send("Unable to fetch data");
+    });
+
+},
+
+
 
 }

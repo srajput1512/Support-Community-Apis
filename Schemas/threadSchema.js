@@ -1,14 +1,15 @@
-const mongoose = require('mongoose');
+const { ObjectId } = require("mongodb");
+const mongoose = require("mongoose");
 
-var Schema = mongoose.Schema; 
+var Schema = mongoose.Schema;
 const threadsSchema = new Schema({
-            Subject: String,
-            CategoryID : String,
-            Description: String,
-            Document: String,
-            Email : String,
-            UserID: String,
-            UserName: String
-})
+  subject: String,
+  categoryID: ObjectId,
+  description: String,
+  document: String,
+  email: String,
+  userName: String,
+  departmentID: ObjectId,
+});
 
 module.exports = threadsSchema;

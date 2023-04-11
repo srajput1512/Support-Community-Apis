@@ -4,7 +4,7 @@ let utils = require('../Util/util');
 
 module.exports = {
 
-      //Get employee list
+      //Get category list
       getAllCategories() {
         return new Promise((resolve, reject) => {
         
@@ -20,7 +20,7 @@ module.exports = {
         });
     },
 
-
+//Get thread by thread ID
     getAllThreadsByID(threadId) {
         return new Promise((resolve, reject) => {
         
@@ -36,5 +36,36 @@ module.exports = {
         });
     },
 
+    //Get list of deaprtments
+    getAllDepartments() {
+        return new Promise((resolve, reject) => {
+        
+            utils.getAllDepartments().then((err, result)=> {
+                    if(result) {
+                        resolve(result)
+                    }else{
+                        resolve(err);
+                    }
+            });
+        }).catch((err) => {
+            reject(err);
+        });
+    },
 
+    //
+     //Get list of threads by departmentID
+     getAllThreadsByDepartmentID(departmentId) {
+        return new Promise((resolve, reject) => {
+        
+            utils.getAllThreadsByDepartmentID(departmentId).then((err, result)=> {
+                    if(result) {
+                        resolve(result)
+                    }else{
+                        resolve(err);
+                    }
+            });
+        }).catch((err) => {
+            reject(err);
+        });
+    },
 }

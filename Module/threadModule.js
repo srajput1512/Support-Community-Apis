@@ -1,14 +1,11 @@
-// Module file will have buisness logic and DB call
-
 let utils = require('../Util/util');
 
 module.exports = {
 
-      //Get category list
-      getAllCategories() {
+    createThread(Subject, CategoryID,Description,Document,Email,UserID,UserName){
         return new Promise((resolve, reject) => {
         
-            utils.getAllCategories().then((err, result)=> {
+            utils.createThread(Subject, CategoryID,Description,Document,Email,UserID,UserName).then((err, result)=> {
                     if(result) {
                         resolve(result)
                     }else{
@@ -20,11 +17,10 @@ module.exports = {
         });
     },
 
-//Get thread by thread ID
-    getAllThreadsByID(threadId) {
+    getResponsesByThreadID(threadId){
         return new Promise((resolve, reject) => {
         
-            utils.getAllThreadsByID(threadId).then((err, result)=> {
+            utils.getResponsesByThreadID(threadId).then((err, result)=> {
                     if(result) {
                         resolve(result)
                     }else{
@@ -36,13 +32,12 @@ module.exports = {
         });
     },
 
-    //Get list of deaprtments
-    getAllDepartments() {
+    createResponse(parentThreadId, replyHelpful, userName,datePosted,description,attachment,isToxic){
         return new Promise((resolve, reject) => {
         
-            utils.getAllDepartments().then((err, result)=> {
+            utils.createResponse(parentThreadId, replyHelpful, userName,datePosted,description,attachment,isToxic).then((err, result)=> {
                     if(result) {
-                        resolve(result)
+                        resolve(true)
                     }else{
                         resolve(err);
                     }
@@ -52,20 +47,6 @@ module.exports = {
         });
     },
 
-    //
-     //Get list of threads by departmentID
-     getAllThreadsByDepartmentID(departmentId) {
-        return new Promise((resolve, reject) => {
-        
-            utils.getAllThreadsByDepartmentID(departmentId).then((err, result)=> {
-                    if(result) {
-                        resolve(result)
-                    }else{
-                        resolve(err);
-                    }
-            });
-        }).catch((err) => {
-            reject(err);
-        });
-    },
+
+    
 }

@@ -45,6 +45,30 @@ module.exports = {
       res.send("Unable to fetch data");
   });
 
+  },
+
+  //Create response to main thread
+  createResponse: (req, res, next) => {
+    let parentThreadId =req.body.parentThreadId;
+    let replyHelpful = req.body.replyHelpful;
+    let userName = req.body.userName;
+    let datePosted = req.body.datePosted;
+    let description = req.body.description;
+    let attachment = req.body.attachment;
+    let isToxic = req.body.isToxic;
+
+    let threadModule = require("../Module/threadModule");
+
+    
+    threadModule.createResponse(parentThreadId, replyHelpful, userName,datePosted,description,attachment,isToxic)
+    .then((result) => {
+      res.send("Response saved successfully");
+    })
+    .catch((err) => {
+      res.send("Unable to create thread");
+    });
+    
+
   }
   
 };

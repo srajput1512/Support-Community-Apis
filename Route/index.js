@@ -8,4 +8,5 @@ module.exports = (app) => {
   app.route("/createThread").post(threadController.createThread);
   app.route("/getAllThreadsByDepartmentID").get(dashboardController.getAllThreadsByDepartmentID);
   app.route("/getResponsesByThreadID").get(threadController.getResponsesByThreadID);
+  app.route("/createResponse").post(threadController.createResponse);
 };

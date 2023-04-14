@@ -5,37 +5,28 @@ const Schema = mongoose.Schema;
 // create threads schema & model
 const createThreadSchema = new Schema({
     categoryID: {
-        type: ObjectId,
-        required: [true, 'ID field is required']
+        type: ObjectId
     },
   departmentID: {
         type: ObjectId,
-        required: [true, 'ID field is required']
     },
     subject: {
-        type: String,
+        type: String
     },
     userName :{
-        type: String,
-        
+        type: String,        
     },
     description: {
-        type: String,
-        deafult: true
+        type: String
     },
     document :{
-        type: String,
-        
-    },
-   
-    
+        type: String
+    },    
     email :{
-        type: String,
-        
+        type: String
     },
     isToxic :{
-        type: Boolean,
-        deafult: true
+        type: Boolean
     }
 });
 

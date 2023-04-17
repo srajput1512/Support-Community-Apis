@@ -6,6 +6,9 @@ const responseModel = require("../Schemas/responseSchema");
 const createThreadSchema = require("../Schemas/createThreadSchema");
 const createThreadResponseSchema = require("../Schemas/createResponseSchema");
 const responsesSchema = require("../Schemas/responseSchema");
+const categoryModel = require("../Schemas/categoriesSchema");
+const departmentModel = require("../Schemas/departmentSchema");
+
 
 module.exports = {
   //Get all category list
@@ -35,13 +38,10 @@ module.exports = {
           const conn = result.createConnection(uri);
           var Schema = moongose.Schema;
 
-          var categorySchema = new Schema({
-            CategoryName: String,
-          });
 
           var categories = moongose.model(
             "categories",
-            categorySchema,
+            categoryModel,
             "Category"
           );
           var queryPromise = categories.find().exec();
@@ -122,13 +122,9 @@ module.exports = {
           const conn = result.createConnection(uri);
           var Schema = moongose.Schema;
 
-          var departmentSchema = new Schema({
-            departmentName: String,
-          });
-
           var departments = moongose.model(
             "departments",
-            departmentSchema,
+            departmentModel,
             "Department"
           );
           var queryPromise = departments.find().exec();

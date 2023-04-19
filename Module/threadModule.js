@@ -2,10 +2,10 @@ let utils = require('../Util/util');
 
 module.exports = {
 
-    createThread(subject,categoryID,description,document,email,userID,userName,isToxic){
+    createThread(subject,categoryID,description,document,email,userID,isToxic,departmentID){
         return new Promise((resolve, reject) => {
         
-            utils.createThread(subject,categoryID,description,document,email,userID,userName,isToxic).then((err, result)=> {
+            utils.createThread(subject,categoryID,description,document,email,userID,isToxic,departmentID).then((err, result)=> {
                     if(result) {
                         resolve(result)
                     }else{

@@ -3,12 +3,8 @@ const uri = "mongodb://127.0.0.1:27017/MTNCommunityDB";
 moongose.set("strictQuery", true);
 const threadModel = require("../Schemas/threadSchema");
 const responseModel = require("../Schemas/responseSchema");
-const createThreadSchema = require("../Schemas/createThreadSchema");
-const createThreadResponseSchema = require("../Schemas/createResponseSchema");
-const responsesSchema = require("../Schemas/responseSchema");
 const categoryModel = require("../Schemas/categoriesSchema");
 const departmentModel = require("../Schemas/departmentSchema");
-
 
 module.exports = {
   //Get all category list
@@ -47,7 +43,6 @@ module.exports = {
           var queryPromise = categories.find().exec();
 
           queryPromise.then(function (category) {
-            console.log(category);
             resolve(category);
           });
         } else {
@@ -73,7 +68,6 @@ module.exports = {
 
           var queryPromise = threadList.findById(threadId).exec();
           queryPromise.then(function (list) {
-            console.log(list);
             resolve(list);
           });
         } else {
@@ -85,23 +79,22 @@ module.exports = {
     });
   },
 
-  createThread(subject,categoryID,description,document,email,userName,isToxic) {
+  createThread(subject,categoryID,description,document,email,isToxic,departmentID) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
-        if (result != undefined) {
-          let collection = createThreadSchema;
+        if (result) {
           let newDocument = {
             subject: subject,
             categoryID: categoryID,
             description: description,
             document: document,
             email: email,
-            userName: userName,
             isToxic: isToxic,
+            departmentID: departmentID,
           };
+          
           var threadList = moongose.model(
-            "threadList",
-            responseModel,
+            threadModel,
             "Threads"
           );
           threadList.create(newDocument).then(function (result) {
@@ -130,7 +123,6 @@ module.exports = {
           var queryPromise = departments.find().exec();
 
           queryPromise.then(function (department) {
-            console.log(department);
             resolve(department);
           });
         } else {
@@ -159,7 +151,6 @@ module.exports = {
             .exec();
 
           queryPromise.then(function (list) {
-            console.log(list);
             resolve(list);
           });
         } else {
@@ -191,7 +182,6 @@ module.exports = {
             .find({ parentThreadId: threadId })
             .exec();
           queryPromise.then(function (list) {
-            console.log(list);
             resolve(list);
           });
         } else {

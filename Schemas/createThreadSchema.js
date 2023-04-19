@@ -7,7 +7,7 @@ const createThreadSchema = new Schema({
     categoryID: {
         type: ObjectId
     },
-  departmentID: {
+    departmentID: {
         type: ObjectId,
     },
     subject: {

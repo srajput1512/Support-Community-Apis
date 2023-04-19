@@ -9,11 +9,12 @@ module.exports = {
     let email = req.body.email;
     let  isToxic = req.body.isToxic;
     let userName = req.body.userName;
+    let departmentID = req.body.departmentID;
 
     let threadModule = require("../Module/threadModule");
 {
       threadModule
-        .createThread(subject,categoryID,description,document,email,userName,isToxic)
+        .createThread(subject,categoryID,description,document,email,userName,isToxic,departmentID)
         .then((result) => {
           res.send("Thread created successfully");
         })

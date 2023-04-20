@@ -53,11 +53,11 @@ module.exports = {
     },
 
     //
-     //Get list of threads by departmentID
-     getAllThreadsByDepartmentID(departmentId) {
+     //Get list of threads by categoryId
+     getAllThreadsByCategoryID(categoryId) {
         return new Promise((resolve, reject) => {
         
-            utils.getAllThreadsByDepartmentID(departmentId).then((err, result)=> {
+            utils.getAllThreadsByCategoryID(categoryId).then((err, result)=> {
                     if(result) {
                         resolve(result)
                     }else{

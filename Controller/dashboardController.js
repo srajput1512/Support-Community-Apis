@@ -45,13 +45,13 @@ getAllDepartments: (req, res, next) => {
 },
 
  //Get all threads by department id 
- getAllThreadsByDepartmentID: (req, res, next) => {
+ getAllThreadsByCategoryID: (req, res, next) => {
 
-    let threadId = req.query.departmentId;
+    let categoryId = req.query.categoryId;
 
     let dashboardModule = require('../Module/dashboardModule');
 
-    dashboardModule.getAllThreadsByDepartmentID(threadId).then((result) => {
+    dashboardModule.getAllThreadsByCategoryID(categoryId).then((result) => {
         res.send(result);
 
     }).catch((err) => {

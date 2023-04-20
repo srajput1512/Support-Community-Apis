@@ -150,18 +150,18 @@ module.exports = {
   },
 
   //Get thread details by department ID
-  getAllThreadsByDepartmentID(departmentId) {
+  getAllThreadsByCategoryID(categoryId) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (
-          (result != undefined && departmentId != null) ||
-          departmentId != undefined
+          (result != undefined && categoryId != null) ||
+          categoryId != undefined
         ) {
           const conn = result.createConnection(process.env.MONGODB_URL);
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
           var queryPromise = threadList
-            .find({ departmentID: departmentId })
+            .find({ categoryId: categoryId })
             .exec();
 
           queryPromise.then(function (list) {

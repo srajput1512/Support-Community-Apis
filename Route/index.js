@@ -8,7 +8,7 @@ module.exports = (app) => {
   app.route("/getAllThreadsByThreadID").get(dashboardController.getAllThreadsByID);
   app.route("/getAllDepartments").get(dashboardController.getAllDepartments);
   app.route("/createThread").post(threadController.createThread);
-  app.route("/getAllThreadsByDepartmentID").get(dashboardController.getAllThreadsByDepartmentID);
+  app.route("/getAllThreadsByCategoryID").get(dashboardController.getAllThreadsByCategoryID);
   app.route("/getResponsesByThreadID").get(threadController.getResponsesByThreadID);
   app.route("/createResponse").post(threadController.createResponse);
 };

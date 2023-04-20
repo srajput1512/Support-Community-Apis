@@ -2,6 +2,8 @@ var express = require('express');  //Creates instance of expres js
 var app = express();
 var cors = require('cors')
 app.use(cors());
+const dotenv = require("dotenv");
+dotenv.config();
 var bodyParser = require('body-parser')
 
 
@@ -14,8 +16,6 @@ app.use(bodyParser.json())
 var routes = require('./Route');
 
 routes(app);
-
-
 
 
 //Creating the server at port : 3001

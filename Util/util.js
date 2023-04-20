@@ -1,23 +1,32 @@
 const moongose = require("mongoose");
-const uri = "mongodb://127.0.0.1:27017/MTNCommunityDB";
 moongose.set("strictQuery", true);
 const threadModel = require("../Schemas/threadSchema");
 const responseModel = require("../Schemas/responseSchema");
 const categoryModel = require("../Schemas/categoriesSchema");
 const departmentModel = require("../Schemas/departmentSchema");
+const userModel = require("../Schemas/userSchema");
+const path = require('path');
+const { spawn } = require('child_process');
+/**
+   * Run python myscript, pass in `-u` to not buffer console output
+   * @return {ChildProcess}
+*/
+function runScript(text) {
+  return pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), `${text}`]);
+}
+
 
 module.exports = {
   //Get all category list
-
   establishDbConnection() {
     return new Promise((resolve, reject) => {
       moongose
-        .connect(uri, {
+        .connect(process.env.MONGODB_URL, {
           useNewUrlParser: true,
           useUnifiedTopology: true,
         })
         .then(async (db) => {
-          if (db != undefined) {
+          if (db) {
             resolve(db);
           }
         });
@@ -31,7 +40,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (result != undefined) {
-          const conn = result.createConnection(uri);
+          const conn = result.createConnection(process.env.MONGODB_URL);
           var Schema = moongose.Schema;
 
 
@@ -62,7 +71,7 @@ module.exports = {
           (result != undefined && threadId != null) ||
           threadId != undefined
         ) {
-          const conn = result.createConnection(uri);
+          const conn = result.createConnection(process.env.MONGODB_URL);
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
 
@@ -79,26 +88,32 @@ module.exports = {
     });
   },
 
-  createThread(subject,categoryID,description,document,email,isToxic,departmentID) {
+  createThread(subject, categoryID, description, document, email, departmentID) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (result) {
-          let newDocument = {
-            subject: subject,
-            categoryID: categoryID,
-            description: description,
-            document: document,
-            email: email,
-            isToxic: isToxic,
-            departmentID: departmentID,
-          };
-          
+
           var threadList = moongose.model(
+            'threadList',
             threadModel,
             "Threads"
           );
-          threadList.create(newDocument).then(function (result) {
-            resolve(result);
+
+          const subprocess = runScript(`${description}`)
+          subprocess.stdout.on('data', (data) => {
+          let isToxOrNontox = (String(data));
+            let newDocument = {
+              subject: subject,
+              categoryID: categoryID,
+              description: description,
+              document: document,
+              email: email,
+              isToxic: isToxOrNontox.includes('non-tox') ? false : true,
+              departmentID: departmentID,
+            };
+            threadList.create(newDocument).then(function (result) {
+              resolve(result);
+            });
           });
         }
       });
@@ -112,7 +127,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (result != undefined) {
-          const conn = result.createConnection(uri);
+          const conn = result.createConnection(process.env.MONGODB_URL);
           var Schema = moongose.Schema;
 
           var departments = moongose.model(
@@ -142,10 +157,9 @@ module.exports = {
           (result != undefined && departmentId != null) ||
           departmentId != undefined
         ) {
-          const conn = result.createConnection(uri);
+          const conn = result.createConnection(process.env.MONGODB_URL);
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
-
           var queryPromise = threadList
             .find({ departmentID: departmentId })
             .exec();
@@ -170,7 +184,7 @@ module.exports = {
           (result != undefined && threadId != null) ||
           threadId != undefined
         ) {
-          const conn = result.createConnection(uri);
+          const conn = result.createConnection(process.env.MONGODB_URL);
 
           var responseList = moongose.model(
             "responseList",
@@ -205,7 +219,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then(async (result) => {
         if (parentThreadId != undefined && parentThreadId != null) {
-          let collection = responsesSchema;
+          // let collection = responsesSchema;
           let newDocument = {
             parentThreadId: parentThreadId,
             replyHelpful: replyHelpful,
@@ -229,4 +243,39 @@ module.exports = {
       reject(err);
     });
   },
+
+  /** POST USER DATA */
+  postUser(userId, userEmail, userMsisdn, userName) {
+    return new Promise((resolve, reject) => {
+      this.establishDbConnection().then((result) => {
+        if (result) {
+          let userDocument = {
+            userId: userId,
+            userEmail: userEmail,
+            userName: userName,
+            userMsisdn: userMsisdn
+          };
+
+          var userList = moongose.model(
+            "userList",
+            userModel,
+            "User"
+          );
+
+          userList.find({ userMsisdn: userDocument.userMsisdn }).exec().then(function (data) {
+            if (Object.keys(data).length === 0) {
+              userList.create(userDocument).then(function (result) {
+                resolve(userDocument);
+              });
+            } else {
+              resolve(userDocument);
+            }
+          });
+        }
+      });
+    }).catch((err) => {
+      reject(err);
+    });
+  },
 };
+

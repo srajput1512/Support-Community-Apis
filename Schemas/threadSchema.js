@@ -4,11 +4,11 @@ const mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 const threadsSchema = new Schema({
   subject: String,
-  categoryID: ObjectId,
+  categoryID: String,
   description: String,
   document: String,
   email: Boolean,
-  departmentID: ObjectId,
+  departmentID: String,
   isToxic: Boolean
 });
 

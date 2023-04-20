@@ -7,21 +7,21 @@ module.exports = {
     let description = req.body.description;
     let document = req.body.document;
     let email = req.body.email;
-    let  isToxic = req.body.isToxic;
+    let isToxic = req.body.isToxic;
     let userName = req.body.userName;
     let departmentID = req.body.departmentID;
 
     let threadModule = require("../Module/threadModule");
-{
+    {
       threadModule
-        .createThread(subject,categoryID,description,document,email,userName,isToxic,departmentID)
+        .createThread(subject, categoryID, description, document, email, userName, isToxic, departmentID)
         .then((result) => {
-          res.send("Thread created successfully");
+          res.json("Thread created successfully");
         })
         .catch((err) => {
-          res.send("Unable to create thread");
+          res.json("Unable to create thread");
         });
-    } 
+    }
   },
 
   //Get responses by thread ID 
@@ -31,15 +31,15 @@ module.exports = {
     threadModule.getResponsesByThreadID(threadId).then((result) => {
       res.send(result);
 
-  }).catch((err) => {
+    }).catch((err) => {
       res.send("Unable to fetch data");
-  });
+    });
 
   },
 
   //Create response to main thread
   createResponse: (req, res, next) => {
-    let parentThreadId =req.body.parentThreadId;
+    let parentThreadId = req.body.parentThreadId;
     let replyHelpful = req.body.replyHelpful;
     let userName = req.body.userName;
     let datePosted = req.body.datePosted;
@@ -48,16 +48,14 @@ module.exports = {
     let isToxic = req.body.isToxic;
 
     let threadModule = require("../Module/threadModule");
-    
-    threadModule.createResponse(parentThreadId, replyHelpful, userName,datePosted,description,attachment,isToxic)
-    .then((result) => {
-      res.send("Response saved successfully");
-    })
-    .catch((err) => {
-      res.send("Unable to create thread");
-    });
-    
 
+    threadModule.createResponse(parentThreadId, replyHelpful, userName, datePosted, description, attachment, isToxic)
+      .then((result) => {
+        res.send("Response saved successfully");
+      })
+      .catch((err) => {
+        res.send("Unable to create thread");
+      });
   }
-  
+
 };

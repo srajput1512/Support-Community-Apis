@@ -39,10 +39,7 @@ module.exports = {
   getAllCategories() {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
-        if (result != undefined) {
-          const conn = result.createConnection(process.env.MONGODB_URL);
-          var Schema = moongose.Schema;
-
+        if (result) {
 
           var categories = moongose.model(
             "categories",
@@ -71,7 +68,6 @@ module.exports = {
           (result != undefined && threadId != null) ||
           threadId != undefined
         ) {
-          const conn = result.createConnection(process.env.MONGODB_URL);
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
 
@@ -88,7 +84,7 @@ module.exports = {
     });
   },
 
-  createThread(subject, categoryID, description, document, email, departmentID) {
+  createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime,) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (result) {
@@ -101,16 +97,20 @@ module.exports = {
 
           const subprocess = runScript(`${description}`)
           subprocess.stdout.on('data', (data) => {
-          let isToxOrNontox = (String(data));
+            let isToxOrNontox = (String(data));
             let newDocument = {
               subject: subject,
               categoryID: categoryID,
               description: description,
               document: document,
               email: email,
+              userId: userId,
               isToxic: isToxOrNontox.includes('non-tox') ? false : true,
               departmentID: departmentID,
+              postedDateTime: postedDateTime,
             };
+
+
             threadList.create(newDocument).then(function (result) {
               resolve(result);
             });
@@ -153,15 +153,11 @@ module.exports = {
   getAllThreadsByCategoryID(categoryId) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
-        if (
-          (result != undefined && categoryId != null) ||
-          categoryId != undefined
-        ) {
-          const conn = result.createConnection(process.env.MONGODB_URL);
+        if (result && categoryId) {
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
           var queryPromise = threadList
-            .find({ categoryId: categoryId })
+            .find({ categoryID: categoryId, isToxic: false })
             .exec();
 
           queryPromise.then(function (list) {
@@ -180,11 +176,7 @@ module.exports = {
   getResponsesByThreadID(threadId) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
-        if (
-          (result != undefined && threadId != null) ||
-          threadId != undefined
-        ) {
-          const conn = result.createConnection(process.env.MONGODB_URL);
+        if (result && threadId) {
 
           var responseList = moongose.model(
             "responseList",
@@ -207,36 +199,35 @@ module.exports = {
     });
   },
 
-  createResponse(
-    parentThreadId,
-    replyHelpful,
-    userName,
-    datePosted,
-    description,
-    attachment,
-    isToxic
-  ) {
+  createResponse(threadId, replyHelpful, userId, postedDateTime, description, document) {
+
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then(async (result) => {
-        if (parentThreadId != undefined && parentThreadId != null) {
-          // let collection = responsesSchema;
-          let newDocument = {
-            parentThreadId: parentThreadId,
-            replyHelpful: replyHelpful,
-            userName: userName,
-            datePosted: datePosted,
-            description: description,
-            attachment: attachment,
-            isToxic: isToxic,
-          };
+        if (threadId) {
+
           var responseList = moongose.model(
             "responseList",
             responseModel,
             "Reply"
           );
-          responseList.create(newDocument).then(function (result) {
-            resolve(result);
+
+          const subprocess = runScript(`${description}`)
+          subprocess.stdout.on('data', (data) => {
+            let isToxOrNontox = (String(data));
+            let newDocument = {
+              threadId: threadId,
+              replyHelpful: replyHelpful,
+              userId: userId,
+              postedDateTime: postedDateTime,
+              description: description,
+              document: document,
+              isToxic: isToxOrNontox.includes('non-tox') ? false : true,
+            };
+            responseList.create(newDocument).then(function (result) {
+              resolve(result);
+            });
           });
+
         }
       });
     }).catch((err) => {

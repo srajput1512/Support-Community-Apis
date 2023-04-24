@@ -3,13 +3,13 @@ const mongoose = require("mongoose");
 
 var Schema = mongoose.Schema;
 const responsesSchema = new Schema({
-  parentThreadId: ObjectId,
-  replyHelpful : Boolean,
-  userName : String,
-  datePosted:String,
-  description: String, 
-  attachment: String,
-  isToxic:Boolean
+  threadId: String,
+  replyHelpful: Boolean,
+  userId: String,
+  postedDateTime: String,
+  description: String,
+  document: String,
+  isToxic: Boolean
 });
 
 module.exports = responsesSchema;

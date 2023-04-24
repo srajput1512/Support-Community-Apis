@@ -9,7 +9,9 @@ const threadsSchema = new Schema({
   document: String,
   email: Boolean,
   departmentID: String,
-  isToxic: Boolean
+  isToxic: Boolean,
+  postedDateTime: String,
+  userId: String
 });
 
 module.exports = threadsSchema;

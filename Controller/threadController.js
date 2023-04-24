@@ -16,10 +16,10 @@ module.exports = {
       threadModule
         .createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime)
         .then((result) => {
-          res.json("Thread created successfully");
+          res.send(result);
         })
         .catch((err) => {
-          res.json("Unable to create thread");
+          res.send("Unable to create thread");
         });
     }
   },

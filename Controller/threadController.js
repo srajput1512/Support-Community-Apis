@@ -7,14 +7,14 @@ module.exports = {
     let description = req.body.description;
     let document = req.body.document;
     let email = req.body.email;
-    let isToxic = req.body.isToxic;
-    let userName = req.body.userName;
+    let userId = req.body.userId;
     let departmentID = req.body.departmentID;
+    let postedDateTime = req.body.postedDateTime;
 
     let threadModule = require("../Module/threadModule");
     {
       threadModule
-        .createThread(subject, categoryID, description, document, email, userName, isToxic, departmentID)
+        .createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime)
         .then((result) => {
           res.json("Thread created successfully");
         })
@@ -39,17 +39,16 @@ module.exports = {
 
   //Create response to main thread
   createResponse: (req, res, next) => {
-    let parentThreadId = req.body.parentThreadId;
+    let threadId = req.body.threadId;
     let replyHelpful = req.body.replyHelpful;
-    let userName = req.body.userName;
-    let datePosted = req.body.datePosted;
+    let userId = req.body.userId;
+    let postedDateTime = req.body.postedDateTime;
     let description = req.body.description;
-    let attachment = req.body.attachment;
-    let isToxic = req.body.isToxic;
+    let document = req.body.document;
 
     let threadModule = require("../Module/threadModule");
 
-    threadModule.createResponse(parentThreadId, replyHelpful, userName, datePosted, description, attachment, isToxic)
+    threadModule.createResponse(threadId, replyHelpful, userId, postedDateTime, description, document)
       .then((result) => {
         res.send("Response saved successfully");
       })

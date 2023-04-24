@@ -110,9 +110,12 @@ module.exports = {
               postedDateTime: postedDateTime,
             };
 
-
             threadList.create(newDocument).then(function (result) {
-              resolve(result);
+              var res = [{
+                "statusCode" :"200",
+                "isToxic" : newDocument.isToxic
+              }]
+              resolve(res);
             });
           });
         }

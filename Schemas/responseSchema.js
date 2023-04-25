@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 var Schema = mongoose.Schema;
 const responsesSchema = new Schema({
-  threadId: String,
+  parentThreadId: ObjectId,
   replyHelpful: Boolean,
   userId: String,
   postedDateTime: String,

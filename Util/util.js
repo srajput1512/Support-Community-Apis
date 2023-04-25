@@ -62,18 +62,32 @@ module.exports = {
 
   //Get thread details by thread ID
   getAllThreadsByID(threadId) {
+    var resultArray = [];
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (
           (result != undefined && threadId != null) ||
           threadId != undefined
         ) {
-
           var threadList = moongose.model("threadList", threadModel, "Threads");
+          var responseList = moongose.model(
+            "responseList",
+            responseModel,
+            "Reply"
+          );
+          threadList.findById(threadId).then((res) => {
+            resultArray.push(res);
 
-          var queryPromise = threadList.findById(threadId).exec();
-          queryPromise.then(function (list) {
-            resolve(list);
+            var resList = responseList
+              .find({ parentThreadId: { $eq: resultArray[0]._id } })
+              .exec();
+
+              resList.then(function (replylist) {
+              if (replylist) {
+                resultArray[0].Reply.push(replylist);
+              }
+              resolve(resultArray);
+            });
           });
         } else {
           resolve(err);
@@ -95,7 +109,7 @@ module.exports = {
             "Threads"
           );
 
-          const subprocess = runScript(`${description}`)
+         const subprocess = runScript(`${description}`)
           subprocess.stdout.on('data', (data) => {
             let isToxOrNontox = (String(data));
             let newDocument = {

@@ -168,18 +168,28 @@ module.exports = {
 
   //Get thread details by department ID
   getAllThreadsByCategoryID(categoryId) {
+    var resultArray = [];
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (result && categoryId) {
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
-          var queryPromise = threadList
-            .find({ categoryID: categoryId, isToxic: false })
-            .exec();
+          var userList = moongose.model("userList", userModel,"User");
+          threadList.find({categoryID : categoryId}).then((res)=> {
+            resultArray.push(res);
 
-          queryPromise.then(function (list) {
-            resolve(list);
+          userList.find().exec().then(function (res){
+            var userArray = res;
+            for (var i =0; i < resultArray[0].length; i++) {
+              for (var j = 0; j < userArray.length; j++){
+                if(resultArray[0][i].userId == userArray[j].userId){
+                  resultArray[0][i].User.push(userArray[j]);
+                }
+              }
+            };
+           resolve(resultArray[0])
           });
+          });       
         } else {
           resolve(err);
         }

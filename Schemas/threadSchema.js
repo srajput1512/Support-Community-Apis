@@ -5,7 +5,7 @@ const Reply = require("./responseSchema");
 var Schema = mongoose.Schema;
 const threadsSchema = new Schema({
   subject: String,
-  categoryID: String,
+  categoryID: ObjectId,
   description: String,
   document: String,
   email: Boolean,
@@ -13,7 +13,8 @@ const threadsSchema = new Schema({
   isToxic: Boolean,
   postedDateTime: String,
   userId: String,
-  Reply: Array
+  Reply: Array,
+  User: Array
 });
 
 module.exports = threadsSchema;

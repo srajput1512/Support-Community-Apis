@@ -232,7 +232,7 @@ module.exports = {
           subprocess.stdout.on('data', (data) => {
             let isToxOrNontox = (String(data));
             let newDocument = {
-              threadId: threadId,
+              parentThreadId: threadId,
               replyHelpful: replyHelpful,
               userId: userId,
               postedDateTime: postedDateTime,

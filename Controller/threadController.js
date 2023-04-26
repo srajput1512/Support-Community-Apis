@@ -39,7 +39,7 @@ module.exports = {
 
   //Create response to main thread
   createResponse: (req, res, next) => {
-    let threadId = req.body.threadId;
+    let threadId = req.body.parentThreadId;
     let replyHelpful = req.body.replyHelpful;
     let userId = req.body.userId;
     let postedDateTime = req.body.postedDateTime;

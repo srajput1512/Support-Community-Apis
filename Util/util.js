@@ -82,7 +82,7 @@ module.exports = {
               .find({ parentThreadId: { $eq: resultArray[0]._id } })
               .exec();
 
-              resList.then(function (replylist) {
+            resList.then(function (replylist) {
               if (replylist) {
                 resultArray[0].Reply.push(replylist);
               }
@@ -109,7 +109,7 @@ module.exports = {
             "Threads"
           );
 
-         const subprocess = runScript(`${description}`)
+          const subprocess = runScript(`${description}`)
           subprocess.stdout.on('data', (data) => {
             let isToxOrNontox = (String(data));
             let newDocument = {
@@ -126,8 +126,8 @@ module.exports = {
 
             threadList.create(newDocument).then(function (result) {
               var res = [{
-                "statusCode" :"200",
-                "isToxic" : newDocument.isToxic
+                "statusCode": "200",
+                "isToxic": newDocument.isToxic
               }]
               resolve(res);
             });
@@ -174,22 +174,22 @@ module.exports = {
         if (result && categoryId) {
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
-          var userList = moongose.model("userList", userModel,"User");
-          threadList.find({categoryID : categoryId}).then((res)=> {
+          var userList = moongose.model("userList", userModel, "User");
+          threadList.find({ categoryID: categoryId }).then((res) => {
             resultArray.push(res);
 
-          userList.find().exec().then(function (res){
-            var userArray = res;
-            for (var i =0; i < resultArray[0].length; i++) {
-              for (var j = 0; j < userArray.length; j++){
-                if(resultArray[0][i].userId == userArray[j].userId){
-                  resultArray[0][i].User.push(userArray[j]);
+            userList.find().exec().then(function (res) {
+              var userArray = res;
+              for (var i = 0; i < resultArray[0].length; i++) {
+                for (var j = 0; j < userArray.length; j++) {
+                  if (resultArray[0][i].userId == userArray[j].userId) {
+                    resultArray[0][i].User.push(userArray[j]);
+                  }
                 }
-              }
-            };
-           resolve(resultArray[0])
+              };
+              resolve(resultArray[0])
+            });
           });
-          });       
         } else {
           resolve(err);
         }

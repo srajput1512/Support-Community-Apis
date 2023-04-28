@@ -175,7 +175,7 @@ module.exports = {
 
           var threadList = moongose.model("threadList", threadModel, "Threads");
           var userList = moongose.model("userList", userModel, "User");
-          threadList.find({ categoryID: categoryId }).then((res) => {
+          threadList.find({ categoryID: categoryId, isToxic: false }).then((res) => {
             resultArray.push(res);
 
             userList.find().exec().then(function (res) {
@@ -205,18 +205,36 @@ module.exports = {
       this.establishDbConnection().then((result) => {
         if (result && threadId) {
 
+          var threadList = moongose.model(
+            'threadList',
+            threadModel,
+            "Threads"
+          );
+
           var responseList = moongose.model(
             "responseList",
             responseModel,
             "Reply"
           );
 
-          var queryPromise = responseList
-            .find({ parentThreadId: threadId })
-            .exec();
-          queryPromise.then(function (list) {
-            resolve(list);
-          });
+          responseList.find({ parentThreadId: threadId })
+            .populate({
+              path: 'parentThreadId'
+            })
+            .then(function (post) {
+              if (post.length === 0) {
+                threadList.find({ _id: threadId }).then(function (mainPost) {
+                  console.log(mainPost)
+                  resolve(mainPost);
+                });
+                return false;
+              }
+              resolve(post);
+              return false;
+            })
+            .catch(err => {
+              console.error(err);
+            });
         } else {
           resolve(err);
         }
@@ -251,7 +269,11 @@ module.exports = {
               isToxic: isToxOrNontox.includes('non-tox') ? false : true,
             };
             responseList.create(newDocument).then(function (result) {
-              resolve(result);
+              var res = [{
+                "statusCode": "200",
+                "isToxic": newDocument.isToxic
+              }]
+              resolve(res);
             });
           });
 

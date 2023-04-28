@@ -30,7 +30,6 @@ module.exports = {
     let threadModule = require("../Module/threadModule");
     threadModule.getResponsesByThreadID(threadId).then((result) => {
       res.send(result);
-
     }).catch((err) => {
       res.send("Unable to fetch data");
     });
@@ -50,7 +49,7 @@ module.exports = {
 
     threadModule.createResponse(threadId, replyHelpful, userId, postedDateTime, description, document)
       .then((result) => {
-        res.send("Response saved successfully");
+        res.send(result);
       })
       .catch((err) => {
         res.send("Unable to create thread");

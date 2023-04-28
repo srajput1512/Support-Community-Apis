@@ -3,7 +3,7 @@ let utils = require('../Util/util');
 module.exports = {
 
     createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime) {
-       
+
         return new Promise((resolve, reject) => {
             utils.createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime).then((err, result) => {
                 if (result) {
@@ -19,8 +19,8 @@ module.exports = {
 
     getResponsesByThreadID(threadId) {
         return new Promise((resolve, reject) => {
-
             utils.getResponsesByThreadID(threadId).then((err, result) => {
+                console.log(result)
                 if (result) {
                     resolve(result)
                 } else {

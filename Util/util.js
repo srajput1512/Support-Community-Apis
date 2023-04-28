@@ -202,6 +202,7 @@ module.exports = {
   //Get thread details by thread ID
   getResponsesByThreadID(threadId) {
     return new Promise((resolve, reject) => {
+      var resultArray = [];
       this.establishDbConnection().then((result) => {
         if (result && threadId) {
 
@@ -210,12 +211,32 @@ module.exports = {
             responseModel,
             "Reply"
           );
+          var threadList = moongose.model("threadList", threadModel, "Threads");
+          var userList = moongose.model("userList", userModel, "User");
 
-          var queryPromise = responseList
-            .find({ parentThreadId: threadId })
-            .exec();
-          queryPromise.then(function (list) {
-            resolve(list);
+          threadList.findById(threadId).then((res) => {
+            resultArray.push(res);
+
+            var resList = responseList
+              .find({ parentThreadId: { $eq: resultArray[0]._id } })
+              .exec();
+
+            resList.then(function (replylist) {
+              if (replylist) {
+                resultArray[0].Reply.push(replylist);
+              }
+              userList.find().exec().then(function (res) {
+                var userArray = res;
+                for (var i = 0; i < resultArray.length; i++) {
+                  for (var j = 0; j < userArray.length; j++) {
+                    if (resultArray[i].userId == userArray[j].userId) {
+                      resultArray[i].User.push(userArray[j]);
+                    }
+                  }
+                };
+                resolve(resultArray)
+              });
+            });
           });
         } else {
           resolve(err);

@@ -20,7 +20,6 @@ module.exports = {
     getResponsesByThreadID(threadId) {
         return new Promise((resolve, reject) => {
             utils.getResponsesByThreadID(threadId).then((err, result) => {
-                console.log(result)
                 if (result) {
                     resolve(result)
                 } else {

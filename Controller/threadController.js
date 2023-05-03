@@ -1,7 +1,7 @@
 module.exports = {
 
   //Create Thread
-  createThread: (req, res, next) => {
+  postThread: (req, res, next) => {
     let subject = req.body.subject;
     let categoryID = req.body.categoryID;
     let description = req.body.description;
@@ -14,7 +14,7 @@ module.exports = {
     let threadModule = require("../Module/threadModule");
     {
       threadModule
-        .createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime)
+        .postThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime)
         .then((result) => {
           res.send(result);
         })
@@ -25,20 +25,19 @@ module.exports = {
   },
 
   //Get responses by thread ID 
-  getResponsesByThreadID: (req, res, next) => {
+  getAllRepliesByThreadId: (req, res, next) => {
     let threadId = req.query.threadId;
     let threadModule = require("../Module/threadModule");
-    threadModule.getResponsesByThreadID(threadId).then((result) => {
-      res.send(result);
-
+    threadModule.getAllRepliesByThreadId(threadId).then((result) => {
+     res.send({ ThreadReplies: result, statusCode: '200', status: 'Success' }); 
     }).catch((err) => {
-      res.send("Unable to fetch data");
+      res.status(500).json({ message: err, statusCode: '500', status: 'Failure' });
     });
 
   },
 
   //Create response to main thread
-  createResponse: (req, res, next) => {
+  postThreadReply: (req, res, next) => {
     let threadId = req.body.parentThreadId;
     let replyHelpful = req.body.replyHelpful;
     let userId = req.body.userId;
@@ -48,7 +47,7 @@ module.exports = {
 
     let threadModule = require("../Module/threadModule");
 
-    threadModule.createResponse(threadId, replyHelpful, userId, postedDateTime, description, document)
+    threadModule.postThreadReply(threadId, replyHelpful, userId, postedDateTime, description, document)
       .then((result) => {
         res.send("Response saved successfully");
       })

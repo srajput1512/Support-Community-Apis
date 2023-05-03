@@ -2,10 +2,10 @@ let utils = require('../Util/util');
 
 module.exports = {
 
-    createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime) {
+    postThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime) {
        
         return new Promise((resolve, reject) => {
-            utils.createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime).then((err, result) => {
+            utils.postThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime).then((err, result) => {
                 if (result) {
                     resolve(result)
                 } else {
@@ -17,10 +17,10 @@ module.exports = {
         });
     },
 
-    getResponsesByThreadID(threadId) {
+    getAllRepliesByThreadId(threadId) {
         return new Promise((resolve, reject) => {
 
-            utils.getResponsesByThreadID(threadId).then((err, result) => {
+            utils.getAllRepliesByThreadId(threadId).then((err, result) => {
                 if (result) {
                     resolve(result)
                 } else {
@@ -32,10 +32,10 @@ module.exports = {
         });
     },
 
-    createResponse(threadId, replyHelpful, userId, postedDateTime, description, document) {
+    postThreadReply(threadId, replyHelpful, userId, postedDateTime, description, document) {
 
         return new Promise((resolve, reject) => {
-            utils.createResponse(threadId, replyHelpful, userId, postedDateTime, description, document).then((err, result) => {
+            utils.postThreadReply(threadId, replyHelpful, userId, postedDateTime, description, document).then((err, result) => {
                 if (result) {
                     resolve(true)
                 } else {

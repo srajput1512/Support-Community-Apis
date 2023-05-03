@@ -54,9 +54,9 @@ module.exports = {
 
     //
     //Get list of threads by departmentID
-    getAllThreadsByCategoryID(categoryId) {
+    getThreadByCategoryId(categoryId) {
         return new Promise((resolve, reject) => {
-            utils.getAllThreadsByCategoryID(categoryId).then((err, result) => {
+            utils.getThreadByCategoryId(categoryId).then((err, result) => {
                 if (result) {
                     resolve(result)
                 } else {

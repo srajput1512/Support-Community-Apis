@@ -98,7 +98,7 @@ module.exports = {
     });
   },
 
-  createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime,) {
+  postThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime,) {
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
         if (result) {
@@ -167,7 +167,7 @@ module.exports = {
   },
 
   //Get thread details by department ID
-  getAllThreadsByCategoryID(categoryId) {
+  getThreadByCategoryId(categoryId) {
     var resultArray = [];
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then((result) => {
@@ -200,7 +200,7 @@ module.exports = {
   },
 
   //Get thread details by thread ID
-  getResponsesByThreadID(threadId) {
+  getAllRepliesByThreadId(threadId) {
     return new Promise((resolve, reject) => {
       var resultArray = [];
       this.establishDbConnection().then((result) => {
@@ -247,7 +247,7 @@ module.exports = {
     });
   },
 
-  createResponse(threadId, replyHelpful, userId, postedDateTime, description, document) {
+  postThreadReply(threadId, replyHelpful, userId, postedDateTime, description, document) {
 
     return new Promise((resolve, reject) => {
       this.establishDbConnection().then(async (result) => {

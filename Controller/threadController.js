@@ -1,56 +1,41 @@
 module.exports = {
 
   //Create Thread
-  createThread: (req, res, next) => {
-    let subject = req.body.subject;
-    let categoryID = req.body.categoryID;
-    let description = req.body.description;
-    let document = req.body.document;
-    let email = req.body.email;
-    let userId = req.body.userId;
-    let departmentID = req.body.departmentID;
-    let postedDateTime = req.body.postedDateTime;
+  postThread: (req, res, next) => {
+   let threadData = req.body;
 
     let threadModule = require("../Module/threadModule");
     {
-      threadModule
-        .createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime)
-        .then((result) => {
-          res.send(result);
+      threadModule.postThread(threadData).then((result) => {
+          res.send({ Thread: result, statusCode: '200', status: 'Success' });
         })
-        .catch((err) => {
-          res.send("Unable to create thread");
+        .catch((err) => {        
+          res.status(500).json({ message: err.message, statusCode: '500', status: 'Failure' });
         });
     }
   },
 
   //Get responses by thread ID 
-  getResponsesByThreadID: (req, res, next) => {
+  getAllRepliesByThreadId: (req, res, next) => {
     let threadId = req.query.threadId;
     let threadModule = require("../Module/threadModule");
-    threadModule.getResponsesByThreadID(threadId).then((result) => {
-      res.send(result);
-
+    threadModule.getAllRepliesByThreadId(threadId).then((result) => {
+     res.send({ ThreadReplies: result, statusCode: '200', status: 'Success' }); 
     }).catch((err) => {
-      res.send("Unable to fetch data");
+      res.status(500).json({ message: err, statusCode: '500', status: 'Failure' });
+      
     });
 
   },
 
   //Create response to main thread
-  createResponse: (req, res, next) => {
-    let threadId = req.body.parentThreadId;
-    let replyHelpful = req.body.replyHelpful;
-    let userId = req.body.userId;
-    let postedDateTime = req.body.postedDateTime;
-    let description = req.body.description;
-    let document = req.body.document;
-
+  postThreadReply: (req, res, next) => {
+    const threadReplyData = req.body;
     let threadModule = require("../Module/threadModule");
 
-    threadModule.createResponse(threadId, replyHelpful, userId, postedDateTime, description, document)
+    threadModule.postThreadReply(threadReplyData)
       .then((result) => {
-        res.send("Response saved successfully");
+        res.send({ ThreadReply: result, statusCode: '200', status: 'Success' });
       })
       .catch((err) => {
         res.send("Unable to create thread");

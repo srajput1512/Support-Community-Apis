@@ -3,12 +3,12 @@ var threadController = require("../Controller/threadController");
 var userController = require("../Controller/userController");
 
 module.exports = (app) => {
-  app.route("/getAllCategories").get(dashboardController.getAllCategories);
+  app.route("/getAllCategories").get(dashboardController.getAllCategories); //done
   app.route("/postUser").post(userController.postUser);
-  app.route("/getAllThreadsByThreadID").get(dashboardController.getAllThreadsByID);
+  app.route("/getAllThreadsByThreadID").get(dashboardController.getAllThreadsByID); //done
   app.route("/getAllDepartments").get(dashboardController.getAllDepartments);
-  app.route("/createThread").post(threadController.createThread);
-  app.route("/getAllThreadsByCategoryID").get(dashboardController.getAllThreadsByCategoryID);
-  app.route("/getResponsesByThreadID").get(threadController.getResponsesByThreadID);
-  app.route("/createResponse").post(threadController.createResponse);
+  app.route("/postThread").post(threadController.postThread);
+  app.route("/getThreadByCategoryId").get(dashboardController.getThreadByCategoryId);
+  app.route("/getAllRepliesByThreadId").get(threadController.getAllRepliesByThreadId);
+  app.route("/postThreadReply").post(threadController.postThreadReply);
 };

@@ -1,12 +1,16 @@
 const moongose = require("mongoose");
 moongose.set("strictQuery", true);
 const threadModel = require("../Schemas/threadSchema");
+const createThreadSchema = require("../Schemas/createThreadSchema")
 const responseModel = require("../Schemas/responseSchema");
 const categoryModel = require("../Schemas/categoriesSchema");
 const departmentModel = require("../Schemas/departmentSchema");
-const userModel = require("../Schemas/userSchema");
+const createResponseSchema = require("../Schemas/createResponseSchema")
 const path = require('path');
+const User = require('../Schemas/userSchema');
+const PostThread = require("../Schemas/createResponseSchema")
 const { spawn } = require('child_process');
+const PostThreadReply = require("../Schemas/createResponseSchema")
 /**
    * Run python myscript, pass in `-u` to not buffer console output
    * @return {ChildProcess}
@@ -19,7 +23,7 @@ function runScript(text) {
 module.exports = {
   //Get all category list
   establishDbConnection() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       moongose
         .connect(process.env.MONGODB_URL, {
           useNewUrlParser: true,
@@ -37,24 +41,9 @@ module.exports = {
 
   //Get all category list
   getAllCategories() {
-    return new Promise((resolve, reject) => {
-      this.establishDbConnection().then((result) => {
-        if (result) {
-
-          var categories = moongose.model(
-            "categories",
-            categoryModel,
-            "Category"
-          );
-          var queryPromise = categories.find().exec();
-
-          queryPromise.then(function (category) {
-            resolve(category);
-          });
-        } else {
-          resolve(err);
-        }
-      });
+    return new Promise(async (resolve) => {
+      const categories = await categoryModel.find();
+      resolve(categories)
     }).catch((err) => {
       reject(err);
     });
@@ -63,7 +52,7 @@ module.exports = {
   //Get thread details by thread ID
   getAllThreadsByID(threadId) {
     var resultArray = [];
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.establishDbConnection().then((result) => {
         if (
           (result != undefined && threadId != null) ||
@@ -98,41 +87,20 @@ module.exports = {
     });
   },
 
-  createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime,) {
+  postThread(threadData) {
     return new Promise((resolve, reject) => {
-      this.establishDbConnection().then((result) => {
-        if (result) {
-
-          var threadList = moongose.model(
-            'threadList',
-            threadModel,
-            "Threads"
-          );
-
-          const subprocess = runScript(`${description}`)
-          subprocess.stdout.on('data', (data) => {
-            let isToxOrNontox = (String(data));
-            let newDocument = {
-              subject: subject,
-              categoryID: categoryID,
-              description: description,
-              document: document,
-              email: email,
-              userId: userId,
-              isToxic: isToxOrNontox.includes('non-tox') ? false : true,
-              departmentID: departmentID,
-              postedDateTime: postedDateTime,
-            };
-
-            threadList.create(newDocument).then(function (result) {
-              var res = [{
-                "statusCode": "200",
-                "isToxic": newDocument.isToxic
-              }]
-              resolve(res);
-            });
+      let isToxOrNontox;
+      const subprocess = runScript(`${threadData.description}`)
+      subprocess.stdout.on('data', (data) => {
+          console.log(data)
+          isToxOrNontox = data.toString();
+          threadData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
+          const newPost = new PostThread(threadData);
+          newPost.save().then((savedPost) => {
+              resolve(savedPost);
+          }).catch((error) => {
+              reject(error);
           });
-        }
       });
     }).catch((err) => {
       reject(err);
@@ -141,142 +109,128 @@ module.exports = {
 
   //Get list of deaprtments
   getAllDepartments() {
-    return new Promise((resolve, reject) => {
-      this.establishDbConnection().then((result) => {
-        if (result != undefined) {
-          const conn = result.createConnection(process.env.MONGODB_URL);
-          var Schema = moongose.Schema;
-
-          var departments = moongose.model(
-            "departments",
-            departmentModel,
-            "Department"
-          );
-          var queryPromise = departments.find().exec();
-
-          queryPromise.then(function (department) {
-            resolve(department);
-          });
-        } else {
-          resolve(err);
-        }
-      });
+    return new Promise(async (resolve) => {
+      const departments = await departmentModel.find();
+      resolve(departments);
     }).catch((err) => {
       reject(err);
     });
   },
 
   //Get thread details by department ID
-  getAllThreadsByCategoryID(categoryId) {
-    var resultArray = [];
-    return new Promise((resolve, reject) => {
-      this.establishDbConnection().then((result) => {
-        if (result && categoryId) {
+  getThreadByCategoryId(categoryId) {
+    return new Promise(async (resolve) => {
 
-          var threadList = moongose.model("threadList", threadModel, "Threads");
-          var userList = moongose.model("userList", userModel, "User");
-          threadList.find({ categoryID: categoryId }).then((res) => {
-            resultArray.push(res);
+      const response = await createThreadSchema.aggregate([
+        {
+            $match: {
+                categoryID: categoryId,
+                isToxic: false
+            }
+        },
+        {
+            $lookup: {
+                from: "User",
+                localField: "userId",
+                foreignField: "userId",
+                as: "users"
+            }
 
-            userList.find().exec().then(function (res) {
-              var userArray = res;
-              for (var i = 0; i < resultArray[0].length; i++) {
-                for (var j = 0; j < userArray.length; j++) {
-                  if (resultArray[0][i].userId == userArray[j].userId) {
-                    resultArray[0][i].User.push(userArray[j]);
-                  }
-                }
-              };
-              resolve(resultArray[0])
-            });
-          });
-        } else {
-          resolve(err);
+        },
+        {
+            $lookup: {
+                from: "Reply",
+                localField: "_id",
+                foreignField: "parentThreadId",
+                as: "replies"
+            }
+
         }
-      });
-    }).catch((err) => {
+          ]).exec();
+      if(response){
+          resolve(response)
+          }
+      }).catch((err) => {
       reject(err);
     });
   },
 
   //Get thread details by thread ID
-  getResponsesByThreadID(threadId) {
-    return new Promise((resolve, reject) => {
-      var resultArray = [];
-      this.establishDbConnection().then((result) => {
-        if (result && threadId) {
-
-          var responseList = moongose.model(
-            "responseList",
-            responseModel,
-            "Reply"
-          );
-          var threadList = moongose.model("threadList", threadModel, "Threads");
-          var userList = moongose.model("userList", userModel, "User");
-
-          threadList.findById(threadId).then((res) => {
-            resultArray.push(res);
-
-            var resList = responseList
-              .find({ parentThreadId: { $eq: resultArray[0]._id } })
-              .exec();
-
-            resList.then(function (replylist) {
-              if (replylist) {
-                resultArray[0].Reply.push(replylist);
-              }
-              userList.find().exec().then(function (res) {
-                var userArray = res;
-                for (var i = 0; i < resultArray.length; i++) {
-                  for (var j = 0; j < userArray.length; j++) {
-                    if (resultArray[i].userId == userArray[j].userId) {
-                      resultArray[i].User.push(userArray[j]);
-                    }
-                  }
-                };
-                resolve(resultArray)
-              });
-            });
-          });
-        } else {
-          resolve(err);
+  getAllRepliesByThreadId(threadId) {
+    return new Promise(async (resolve) => {
+      const response = await createResponseSchema.aggregate([
+        {
+            $match: {
+                _id: threadId,
+                isToxic: false
+            }
+        },
+        {
+            $lookup: {
+                from: "Reply",
+                localField: "_id",
+                foreignField: "parentThreadId",
+                as: "replies"
+            }
+        },
+        {
+            $unwind: {
+                path: "$replies",
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $lookup: {
+                from: "User",
+                localField: "replies.userId",
+                foreignField: "userId",
+                as: "replies.user"
+            }
+        },
+        {
+            $lookup: {
+                from: "User",
+                localField: "userId",
+                foreignField: "userId",
+                as: "user"
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                subject: { $first: "$subject" },
+                categoryID: { $first: "$categoryID" },
+                document: { $first: "$document" },
+                departmentID: { $first: "$departmentID" },
+                isToxic: { $first: "$isToxic" },
+                postedDateTime: { $first: "$postedDateTime" },
+                userId: { $first: "$userId" },
+                description: { $first: "$description" },
+                user: { $first: "$user" },
+                replies: { $push: "$replies" }
+            }
         }
-      });
+    ]).exec();
+    resolve(response);
     }).catch((err) => {
       reject(err);
     });
   },
 
-  createResponse(threadId, replyHelpful, userId, postedDateTime, description, document) {
+  postThreadReply(threadReplyData) {
 
-    return new Promise((resolve, reject) => {
-      this.establishDbConnection().then(async (result) => {
-        if (threadId) {
-
-          var responseList = moongose.model(
-            "responseList",
-            responseModel,
-            "Reply"
-          );
-
-          const subprocess = runScript(`${description}`)
-          subprocess.stdout.on('data', (data) => {
-            let isToxOrNontox = (String(data));
-            let newDocument = {
-              parentThreadId: threadId,
-              replyHelpful: replyHelpful,
-              userId: userId,
-              postedDateTime: postedDateTime,
-              description: description,
-              document: document,
-              isToxic: isToxOrNontox.includes('non-tox') ? false : true,
-            };
-            responseList.create(newDocument).then(function (result) {
-              resolve(result);
-            });
+    return new Promise((resolve) => {
+      let isToxOrNontox;
+      const subprocess = runScript(`${threadReplyData.description}`)
+      subprocess.stdout.on('data', (data) => {
+          isToxOrNontox = data.toString();
+          threadReplyData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
+          const newPostReply = new PostThreadReply(threadReplyData);
+          newPostReply.save().then((savedPostReply) => {
+              resolve(savedPostReply);
+          }).catch((error) => {
+              reject(error);
           });
-
-        }
       });
     }).catch((err) => {
       reject(err);
@@ -284,37 +238,23 @@ module.exports = {
   },
 
   /** POST USER DATA */
-  postUser(userId, userEmail, userMsisdn, userName) {
-    return new Promise((resolve, reject) => {
-      this.establishDbConnection().then((result) => {
-        if (result) {
-          let userDocument = {
-            userId: userId,
-            userEmail: userEmail,
-            userName: userName,
-            userMsisdn: userMsisdn
-          };
-
-          var userList = moongose.model(
-            "userList",
-            userModel,
-            "User"
-          );
-
-          userList.find({ userMsisdn: userDocument.userMsisdn }).exec().then(function (data) {
-            if (Object.keys(data).length === 0) {
-              userList.create(userDocument).then(function (result) {
-                resolve(userDocument);
-              });
-            } else {
-              resolve(userDocument);
-            }
-          });
-        }
-      });
+  postUser(userData) {
+    return new Promise(async (resolve) => {
+            const newUser = new User(userData);
+            const savedUser = await newUser.save();
+            resolve(savedUser);
     }).catch((err) => {
       reject(err);
     });
   },
+
+   getLoggedInUser(){
+    return new Promise(async (resolve) => {
+      const user = await User.find();
+            resolve(user);
+    }).catch((err) => {
+      reject(err);
+    });
+  }
 };
 

@@ -2,9 +2,9 @@ let utils = require('../Util/util');
 
 module.exports = {
 
-    postUser(userId, userEmail, userMsisdn, userName) {
+    postUser(userData) {
         return new Promise((resolve, reject) => {
-            utils.postUser(userId, userEmail, userMsisdn, userName).then((err, result) => {
+            utils.postUser(userData).then((err, result) => {
                 if (result) {
                     resolve(result)
                 } else {
@@ -15,4 +15,18 @@ module.exports = {
             reject(err);
         });
     },
+
+    getLoggedInUser(){
+        return new Promise((resolve, reject) => {
+            utils.getLoggedInUser().then((err, result) => {
+                if (result) {
+                    resolve(result)
+                } else {
+                    reject(err);
+                }
+            });
+        }).catch((err) => {
+            reject(err);
+        });
+    }
 }

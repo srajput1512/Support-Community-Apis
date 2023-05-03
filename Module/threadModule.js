@@ -2,10 +2,24 @@ let utils = require('../Util/util');
 
 module.exports = {
 
-    createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime) {
-
+    postThread(threadData) {
         return new Promise((resolve, reject) => {
-            utils.createThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime).then((err, result) => {
+            utils.postThread(threadData).then((err, result) => {
+                if (result) {
+                    resolve(result)
+                } else {
+                    reject(err);
+                }
+            });
+        }).catch((err) => {
+            reject(err);
+        });
+    },
+
+    getAllRepliesByThreadId(threadId) {
+        return new Promise((resolve, reject) => {
+
+            utils.getAllRepliesByThreadId(threadId).then((err, result) => {
                 if (result) {
                     resolve(result)
                 } else {
@@ -17,24 +31,10 @@ module.exports = {
         });
     },
 
-    getResponsesByThreadID(threadId) {
-        return new Promise((resolve, reject) => {
-            utils.getResponsesByThreadID(threadId).then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    resolve(err);
-                }
-            });
-        }).catch((err) => {
-            reject(err);
-        });
-    },
-
-    createResponse(threadId, replyHelpful, userId, postedDateTime, description, document) {
+    postThreadReply(threadReplyData) {
 
         return new Promise((resolve, reject) => {
-            utils.createResponse(threadId, replyHelpful, userId, postedDateTime, description, document).then((err, result) => {
+            utils.postThreadReply(threadReplyData).then((err, result) => {
                 if (result) {
                     resolve(true)
                 } else {

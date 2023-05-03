@@ -1,8 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-var Schema = mongoose.Schema;
-const departmentSchema = new Schema({
-    departmentName: String,
+const departmentSchema = new mongoose.Schema({
+    CategoryName: {
+        type: String
+    }
 });
 
-module.exports = departmentSchema;
+module.exports = mongoose.model('Departments', departmentSchema, 'Department');
+

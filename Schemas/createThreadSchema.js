@@ -1,36 +1,35 @@
+
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 
-// create threads schema & model
-const createThreadSchema = new Schema({
-    categoryID: {
-        type: ObjectId
-    },
-    departmentID: {
-        type: ObjectId,
-    },
+const createThreadSchema = new mongoose.Schema({
+    
     subject: {
         type: String
     },
-    userName :{
-        type: String,        
+    categoryID: {
+        type: ObjectId
+    },
+    document: {
+        type: String
+    },
+    departmentID: {
+        type: ObjectId
+    },
+    isToxic: {
+        type: Boolean
+    },
+    postedDateTime: {
+        type: String
+    },
+    userId: {
+        type: String
     },
     description: {
         type: String
-    },
-    document :{
-        type: String
-    },    
-    email :{
-        type: String
-    },
-    isToxic :{
-        type: Boolean
     }
-});
+}, { strict: true });
+
+module.exports = mongoose.model('threads', createThreadSchema,'Thread');
 
 
-const Thread = mongoose.model('Threads',createThreadSchema);
-
-module.exports = Thread;

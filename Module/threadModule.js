@@ -2,14 +2,13 @@ let utils = require('../Util/util');
 
 module.exports = {
 
-    postThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime) {
-       
+    postThread(threadData) {
         return new Promise((resolve, reject) => {
-            utils.postThread(subject, categoryID, description, document, email, userId, departmentID, postedDateTime).then((err, result) => {
+            utils.postThread(threadData).then((err, result) => {
                 if (result) {
                     resolve(result)
                 } else {
-                    resolve(err);
+                    reject(err);
                 }
             });
         }).catch((err) => {
@@ -32,10 +31,10 @@ module.exports = {
         });
     },
 
-    postThreadReply(threadId, replyHelpful, userId, postedDateTime, description, document) {
+    postThreadReply(threadReplyData) {
 
         return new Promise((resolve, reject) => {
-            utils.postThreadReply(threadId, replyHelpful, userId, postedDateTime, description, document).then((err, result) => {
+            utils.postThreadReply(threadReplyData).then((err, result) => {
                 if (result) {
                     resolve(true)
                 } else {

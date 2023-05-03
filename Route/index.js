@@ -3,9 +3,9 @@ var threadController = require("../Controller/threadController");
 var userController = require("../Controller/userController");
 
 module.exports = (app) => {
-  app.route("/getAllCategories").get(dashboardController.getAllCategories);
+  app.route("/getAllCategories").get(dashboardController.getAllCategories); //done
   app.route("/postUser").post(userController.postUser);
-  app.route("/getAllThreadsByThreadID").get(dashboardController.getAllThreadsByID);
+  app.route("/getAllThreadsByThreadID").get(dashboardController.getAllThreadsByID); //done
   app.route("/getAllDepartments").get(dashboardController.getAllDepartments);
   app.route("/postThread").post(threadController.postThread);
   app.route("/getThreadByCategoryId").get(dashboardController.getThreadByCategoryId);

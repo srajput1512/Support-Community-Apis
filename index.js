@@ -1,24 +1,25 @@
-var express = require('express');  //Creates instance of expres js
-var app = express();
-var cors = require('cors')
-app.use(cors());
+const express = require("express");
+
+var routes = require("./Route");
+
+const cors = require("cors");
+
 const dotenv = require("dotenv");
+
 dotenv.config();
-var bodyParser = require('body-parser')
 
+const PORT = process.env.PORT || 8000;
 
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded());
+const app = express();
 
-app.use(bodyParser.urlencoded({extended:true}));
-// parse application/json
-app.use(bodyParser.json())
-var routes = require('./Route');
+const { setMongooseConnection } = require("./Config/config");
+
+app.use(cors());
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 routes(app);
-
-
-//Creating the server at port : 3001
-app.listen(3001, function () {
-  console.log("Example app listening at port 3001");
-})
+app.listen(PORT, async () => {
+  console.log(`server up on port ${PORT}`);
+});

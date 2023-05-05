@@ -1,17 +1,14 @@
-const moongose = require("mongoose");
-moongose.set("strictQuery", true);
-const threadModel = require("../Schemas/threadSchema");
-const createThreadSchema = require("../Schemas/createThreadSchema")
-const responseModel = require("../Schemas/responseSchema");
+const { ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 const categoryModel = require("../Schemas/categoriesSchema");
 const departmentModel = require("../Schemas/departmentSchema");
-const createResponseSchema = require("../Schemas/createResponseSchema")
-const path = require('path');
-const User = require('../Schemas/userSchema');
+const UserModel = require('../Schemas/userSchema');
+const PostThreadModel = require("../Schemas/createThreadSchema")
+const PostThreadReplyModel = require("../Schemas/createResponseSchema")
 const likesSchema = require('../Schemas/LikesSchema');
-const PostThread = require("../Schemas/createResponseSchema")
 const { spawn } = require('child_process');
-const PostThreadReply = require("../Schemas/createResponseSchema")
+const path = require('path');
+
 /**
    * Run python myscript, pass in `-u` to not buffer console output
    * @return {ChildProcess}
@@ -22,10 +19,10 @@ function runScript(text) {
 
 
 module.exports = {
-  //Get all category list
+  //Check Connection establish
   establishDbConnection() {
     return new Promise((resolve) => {
-      moongose
+      mongoose
         .connect(process.env.MONGODB_URL, {
           useNewUrlParser: true,
           useUnifiedTopology: true,
@@ -50,58 +47,20 @@ module.exports = {
     });
   },
 
-  //Get thread details by thread ID
-  getAllThreadsByID(threadId) {
-    var resultArray = [];
-    return new Promise((resolve) => {
-      this.establishDbConnection().then((result) => {
-        if (
-          (result != undefined && threadId != null) ||
-          threadId != undefined
-        ) {
-          var threadList = moongose.model("threadList", threadModel, "Threads");
-          var responseList = moongose.model(
-            "responseList",
-            responseModel,
-            "Reply"
-          );
-          threadList.findById(threadId).then((res) => {
-            resultArray.push(res);
-
-            var resList = responseList
-              .find({ parentThreadId: { $eq: resultArray[0]._id } })
-              .exec();
-
-            resList.then(function (replylist) {
-              if (replylist) {
-                resultArray[0].Reply.push(replylist);
-              }
-              resolve(resultArray);
-            });
-          });
-        } else {
-          resolve(err);
-        }
-      });
-    }).catch((err) => {
-      reject(err);
-    });
-  },
 
   postThread(threadData) {
     return new Promise((resolve, reject) => {
       let isToxOrNontox;
       const subprocess = runScript(`${threadData.description}`)
       subprocess.stdout.on('data', (data) => {
-          console.log(data)
-          isToxOrNontox = data.toString();
-          threadData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
-          const newPost = new PostThread(threadData);
-          newPost.save().then((savedPost) => {
-              resolve(savedPost);
-          }).catch((error) => {
-              reject(error);
-          });
+        isToxOrNontox = data.toString();
+        threadData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
+        const newPost = new PostThreadModel(threadData);
+        newPost.save().then((savedPost) => {
+          resolve(savedPost);
+        }).catch((error) => {
+          reject(error);
+        });
       });
     }).catch((err) => {
       reject(err);
@@ -120,118 +79,115 @@ module.exports = {
 
   //Get thread details by department ID
   getThreadByCategoryId(categoryId) {
-    return new Promise(async (resolve) => {
-
-      const response = await createThreadSchema.aggregate([
+    return new Promise((resolve) => {
+      const response = PostThreadModel.aggregate([
         {
-            $match: {
-                categoryID: categoryId,
-                isToxic: false
-            }
-        },
-        {
-            $lookup: {
-                from: "User",
-                localField: "userId",
-                foreignField: "userId",
-                as: "users"
-            }
-
-        },
-        {
-            $lookup: {
-                from: "Reply",
-                localField: "_id",
-                foreignField: "parentThreadId",
-                as: "replies"
-            }
-
-        }
-          ]).exec();
-      if(response){
-          resolve(response)
+          $match: {
+            categoryID: categoryId,
+            isToxic: false
           }
-      }).catch((err) => {
+        },
+        {
+          $lookup: {
+            from: "User",
+            localField: "userId",
+            foreignField: "userId",
+            as: "users"
+          }
+
+        },
+        {
+          $lookup: {
+            from: "Reply",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "replies"
+          }
+        }
+      ]).exec();
+      if (response) {
+        resolve(response)
+      }
+    }).catch((err) => {
       reject(err);
     });
   },
 
   //Get thread details by thread ID
   getAllRepliesByThreadId(threadId) {
-    return new Promise(async (resolve) => {
-      const response = await createResponseSchema.aggregate([
+    return new Promise(async (resolve, reject) => {
+      const result = await PostThreadModel.aggregate([
         {
-            $match: {
-                _id: threadId,
-                isToxic: false
-            }
+          $match: {
+            _id: new ObjectId(threadId),
+            isToxic: false
+          }
         },
         {
-            $lookup: {
-                from: "Reply",
-                localField: "_id",
-                foreignField: "parentThreadId",
-                as: "replies"
-            }
+          $lookup: {
+            from: "Reply",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "replies"
+          }
         },
         {
-            $unwind: {
-                path: "$replies",
-                preserveNullAndEmptyArrays: true
-            }
+          $unwind: {
+            path: "$replies",
+            preserveNullAndEmptyArrays: true
+          }
         },
         {
-            $lookup: {
-                from: "User",
-                localField: "replies.userId",
-                foreignField: "userId",
-                as: "replies.user"
-            }
+          $lookup: {
+            from: "User",
+            localField: "replies.userId",
+            foreignField: "userId",
+            as: "replies.user"
+          }
         },
         {
-            $lookup: {
-                from: "User",
-                localField: "userId",
-                foreignField: "userId",
-                as: "user"
-            }
+          $lookup: {
+            from: "User",
+            localField: "userId",
+            foreignField: "userId",
+            as: "user"
+          }
         },
         {
-            $group: {
-                _id: "$_id",
-                subject: { $first: "$subject" },
-                categoryID: { $first: "$categoryID" },
-                document: { $first: "$document" },
-                departmentID: { $first: "$departmentID" },
-                isToxic: { $first: "$isToxic" },
-                postedDateTime: { $first: "$postedDateTime" },
-                userId: { $first: "$userId" },
-                description: { $first: "$description" },
-                user: { $first: "$user" },
-                replies: { $push: "$replies" }
-            }
+          $group: {
+            _id: "$_id",
+            subject: { $first: "$subject" },
+            categoryID: { $first: "$categoryID" },
+            document: { $first: "$document" },
+            departmentID: { $first: "$departmentID" },
+            isToxic: { $first: "$isToxic" },
+            postedDateTime: { $first: "$postedDateTime" },
+            userId: { $first: "$userId" },
+            description: { $first: "$description" },
+            user: { $first: "$user" },
+            replies: { $push: "$replies" }
+          }
         }
-    ]).exec();
-    resolve(response);
+      ]).exec();
+      resolve(result)
     }).catch((err) => {
       reject(err);
-    });
+    })
   },
 
   postThreadReply(threadReplyData) {
-
     return new Promise((resolve) => {
       let isToxOrNontox;
       const subprocess = runScript(`${threadReplyData.description}`)
       subprocess.stdout.on('data', (data) => {
-          isToxOrNontox = data.toString();
-          threadReplyData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
-          const newPostReply = new PostThreadReply(threadReplyData);
-          newPostReply.save().then((savedPostReply) => {
-              resolve(savedPostReply);
-          }).catch((error) => {
-              reject(error);
-          });
+        isToxOrNontox = data.toString();
+        threadReplyData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
+        const newPostReply = new PostThreadReplyModel(threadReplyData);
+        newPostReply.save().then((savedPostReply) => {
+          resolve(savedPostReply);
+        }).catch((error) => {
+          reject(error);
+        });
       });
     }).catch((err) => {
       reject(err);
@@ -241,18 +197,24 @@ module.exports = {
   /** POST USER DATA */
   postUser(userData) {
     return new Promise(async (resolve) => {
-            const newUser = new User(userData);
-            const savedUser = await newUser.save();
-            resolve(savedUser);
+      const isUserExist = await UserModel.find({ userId: userData.userId });
+      if (isUserExist.length === 0) {
+        const newUser = new UserModel(userData);
+        const savedUser = await newUser.save();
+        resolve(savedUser);
+      } else {
+        resolve(isUserExist);
+      }
     }).catch((err) => {
       reject(err);
     });
   },
 
-   getLoggedInUser(){
+  /** Get USER DATA */
+  getLoggedInUser(userId) {
     return new Promise(async (resolve) => {
-      const user = await User.find();
-            resolve(user);
+      const user = await UserModel.find({ userId: userId });
+      resolve(user);
     }).catch((err) => {
       reject(err);
     });

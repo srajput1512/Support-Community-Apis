@@ -1,20 +1,18 @@
-
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 
-const createThreadSchema = new mongoose.Schema({
-    
+const postThreadSchema = new mongoose.Schema({
     subject: {
         type: String
     },
     categoryID: {
-        type: ObjectId
+        type: String
     },
     document: {
         type: String
     },
     departmentID: {
-        type: ObjectId
+        type: String
     },
     isToxic: {
         type: Boolean
@@ -28,8 +26,8 @@ const createThreadSchema = new mongoose.Schema({
     description: {
         type: String
     }
-}, { strict: true });
+});
 
-module.exports = mongoose.model('threads', createThreadSchema,'Thread');
+module.exports = mongoose.model('threads', postThreadSchema, 'Thread');
 
 

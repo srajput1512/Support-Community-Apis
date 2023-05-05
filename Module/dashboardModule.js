@@ -7,29 +7,8 @@ module.exports = {
     //Get category list
     getAllCategories() {
         return new Promise((resolve, reject) => {
-
-            utils.getAllCategories().then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    resolve(err);
-                }
-            });
-        }).catch((err) => {
-            reject(err);
-        });
-    },
-
-    //Get thread by thread ID
-    getAllThreadsByID(threadId) {
-        return new Promise((resolve, reject) => {
-
-            utils.getAllThreadsByID(threadId).then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    resolve(err);
-                }
+            utils.getAllCategories().then((result) => {
+                resolve(result)
             });
         }).catch((err) => {
             reject(err);
@@ -39,32 +18,24 @@ module.exports = {
     //Get list of deaprtments
     getAllDepartments() {
         return new Promise((resolve, reject) => {
-
-            utils.getAllDepartments().then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    resolve(err);
-                }
-            });
-        }).catch((err) => {
-            reject(err);
+            utils.getAllDepartments()
+                .then((result) => {
+                    resolve(result);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
         });
     },
 
-    //
     //Get list of threads by departmentID
     getThreadByCategoryId(categoryId) {
         return new Promise((resolve, reject) => {
-            utils.getThreadByCategoryId(categoryId).then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    resolve(err);
-                }
+            utils.getThreadByCategoryId(categoryId).then((result) => {
+                resolve(result);
+            }).catch((err) => {
+                reject(err);
             });
-        }).catch((err) => {
-            reject(err);
         });
-    },
+    }
 }

@@ -4,29 +4,21 @@ module.exports = {
 
     postUser(userData) {
         return new Promise((resolve, reject) => {
-            utils.postUser(userData).then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    resolve(err);
-                }
+            utils.postUser(userData).then((result) => {
+                resolve(result);
+            }).catch((err) => {
+                reject(err);
             });
-        }).catch((err) => {
-            reject(err);
         });
     },
 
-    getLoggedInUser(){
-        return new Promise((resolve, reject) => {
-            utils.getLoggedInUser().then((err, result) => {
-                if (result) {
-                    resolve(result)
-                } else {
-                    reject(err);
-                }
+    getLoggedInUser(userId) {
+        return new Promise((resolve) => {
+            utils.getLoggedInUser(userId).then((result) => {
+                resolve(result)
+            }).catch((err) => {
+                reject(err);
             });
-        }).catch((err) => {
-            reject(err);
         });
     }
 }

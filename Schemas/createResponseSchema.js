@@ -1,37 +1,30 @@
-const { ObjectId } = require("mongodb");
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const { ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 
-// create response schema & model
-const createThreadResponseSchema = new Schema({
+const postThreadReplySchema = new mongoose.Schema({
   parentThreadId: {
-    type: ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'threads'
   },
   replyHelpful: {
-    type: Boolean,
+    type: Boolean
   },
-  userName: {
-    type: String,
+  document: {
+    type: String
   },
-  datePosted: {
-    type: String,
-  },
-
-  description: {
-    type: String,
-    deafult: true,
-  },
-
-  attachment: {
-    type: String,
-  },
-
   isToxic: {
-    type: Boolean,
-    deafult: true,
+    type: Boolean
   },
-});
+  postedDateTime: {
+    type: String
+  },
+  userId: {
+    type: String
+  },
+  description: {
+    type: String
+  }
+}, { strict: true });
 
-const Response = mongoose.model("Response", createThreadResponseSchema);
+module.exports = mongoose.model('replies', postThreadReplySchema, 'Reply');
 
-module.exports = Response;

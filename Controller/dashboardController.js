@@ -1,4 +1,4 @@
-let dashboardModule =require('../Module/dashboardModule');
+let dashboardModule = require('../Module/dashboardModule');
 
 module.exports = {
 
@@ -11,23 +11,9 @@ module.exports = {
         });
     },
 
-    //Get all threads by thread id 
-    getAllThreadsByID: (req, res, next) => {
-
-        let threadId = req.query.threadId;
-
-        dashboardModule.getAllThreadsByID(threadId).then((result) => {
-            res.send(result);
-
-        }).catch((err) => {
-            res.send("Unable to fetch data");
-        });
-
-    },
 
     //Get list of deaprtments
     getAllDepartments: (req, res, next) => {
-
         dashboardModule.getAllDepartments().then((result) => {
             res.send(result);
 
@@ -46,5 +32,4 @@ module.exports = {
             res.status(500).json({ message: err, statusCode: '500', status: 'Failure' });
         });
     },
-
 }

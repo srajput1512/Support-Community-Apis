@@ -7,7 +7,6 @@ module.exports = {
     let threadData = req.body;
     {
       threadModule.postThread(threadData).then((result) => {
-        console.log(result)
         res.send({ Thread: result, statusCode: '200', status: 'Success' });
       })
         .catch((err) => {

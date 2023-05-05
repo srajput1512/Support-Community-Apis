@@ -22,6 +22,15 @@ module.exports = {
         } catch (error) {
             res.status(500).json({ message: error.message, statusCode: '500', status: 'Failure' });
         }
+    },
+
+    postThreadLikes: (req, res, next) => {
+        const data = req.body;   
+           userModule.postThreadLikes(data).then((result)=>{
+                res.json(result);
+            }).catch((err)=>{
+                res.json(err);
+            });
     }
 
 };

@@ -1,22 +1,24 @@
-const { ObjectId } = require('mongodb');
-const mongoose = require('mongoose');
+const { ObjectId } = require("mongodb");
+const mongoose = require("mongoose");
 const categoryModel = require("../Schemas/categoriesSchema");
 const departmentModel = require("../Schemas/departmentSchema");
-const UserModel = require('../Schemas/userSchema');
-const PostThreadModel = require("../Schemas/createThreadSchema")
-const PostThreadReplyModel = require("../Schemas/createResponseSchema")
-const likesSchema = require('../Schemas/LikesSchema');
-const { spawn } = require('child_process');
-const path = require('path');
+const UserModel = require("../Schemas/userSchema");
+const PostThreadModel = require("../Schemas/createThreadSchema");
+const PostThreadReplyModel = require("../Schemas/createResponseSchema");
+const likesSchema = require("../Schemas/LikesSchema");
+const { spawn } = require("child_process");
+const path = require("path");
 
 /**
-   * Run python myscript, pass in `-u` to not buffer console output
-   * @return {ChildProcess}
-*/
+ * Run python myscript, pass in `-u` to not buffer console output
+ * @return {ChildProcess}
+ */
 function runScript(text) {
-  return pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), `${text}`]);
+  return (pythonProcess = spawn("python", [
+    path.join(__dirname, `../python-ml/app.py`),
+    `${text}`,
+  ]));
 }
-
 
 module.exports = {
   //Check Connection establish
@@ -41,29 +43,26 @@ module.exports = {
   getAllCategories() {
     return new Promise(async (resolve) => {
       const categories = await categoryModel.find();
-      resolve(categories)
+      resolve(categories);
     }).catch((err) => {
       reject(err);
     });
   },
 
-
   postThread(threadData) {
     return new Promise((resolve, reject) => {
       let isToxOrNontox;
-      const subprocess = runScript(`${threadData.description}`)
-      subprocess.stdout.on('data', (data) => {
-        isToxOrNontox = data.toString();
-        threadData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
+      const subprocess = runScript(`${threadData.description}`);
+      subprocess.stdout.on("data", (data) => {
+        isToxOrNontox = threadData.toString();
+        threadData.isToxic = false;
         const newPost = new PostThreadModel(threadData);
         newPost.save().then((savedPost) => {
-          resolve(savedPost);
-        }).catch((error) => {
-          reject(error);
-        });
+            resolve(savedPost);
+          }).catch((err) => {
+            reject(err);
+          });
       });
-    }).catch((err) => {
-      reject(err);
     });
   },
 
@@ -84,29 +83,28 @@ module.exports = {
         {
           $match: {
             categoryID: categoryId,
-            isToxic: false
-          }
+            isToxic: false,
+          },
         },
         {
           $lookup: {
             from: "User",
             localField: "userId",
             foreignField: "userId",
-            as: "users"
-          }
-
+            as: "users",
+          },
         },
         {
           $lookup: {
             from: "Reply",
             localField: "_id",
             foreignField: "parentThreadId",
-            as: "replies"
-          }
-        }
+            as: "replies",
+          },
+        },
       ]).exec();
       if (response) {
-        resolve(response)
+        resolve(response);
       }
     }).catch((err) => {
       reject(err);
@@ -120,38 +118,38 @@ module.exports = {
         {
           $match: {
             _id: new ObjectId(threadId),
-            isToxic: false
-          }
+            isToxic: false,
+          },
         },
         {
           $lookup: {
             from: "Reply",
             localField: "_id",
             foreignField: "parentThreadId",
-            as: "replies"
-          }
+            as: "replies",
+          },
         },
         {
           $unwind: {
             path: "$replies",
-            preserveNullAndEmptyArrays: true
-          }
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
             from: "User",
             localField: "replies.userId",
             foreignField: "userId",
-            as: "replies.user"
-          }
+            as: "replies.user",
+          },
         },
         {
           $lookup: {
             from: "User",
             localField: "userId",
             foreignField: "userId",
-            as: "user"
-          }
+            as: "user",
+          },
         },
         {
           $group: {
@@ -165,29 +163,34 @@ module.exports = {
             userId: { $first: "$userId" },
             description: { $first: "$description" },
             user: { $first: "$user" },
-            replies: { $push: "$replies" }
-          }
-        }
+            replies: { $push: "$replies" },
+          },
+        },
       ]).exec();
-      resolve(result)
+      resolve(result);
     }).catch((err) => {
       reject(err);
-    })
+    });
   },
 
   postThreadReply(threadReplyData) {
     return new Promise((resolve) => {
       let isToxOrNontox;
-      const subprocess = runScript(`${threadReplyData.description}`)
-      subprocess.stdout.on('data', (data) => {
+      const subprocess = runScript(`${threadReplyData.description}`);
+      subprocess.stdout.on("data", (data) => {
         isToxOrNontox = data.toString();
-        threadReplyData.isToxic = isToxOrNontox.includes('non-tox') ? false : true;
+        threadReplyData.isToxic = isToxOrNontox.includes("non-tox")
+          ? false
+          : true;
         const newPostReply = new PostThreadReplyModel(threadReplyData);
-        newPostReply.save().then((savedPostReply) => {
-          resolve(savedPostReply);
-        }).catch((error) => {
-          reject(error);
-        });
+        newPostReply
+          .save()
+          .then((savedPostReply) => {
+            resolve(savedPostReply);
+          })
+          .catch((error) => {
+            reject(error);
+          });
       });
     }).catch((err) => {
       reject(err);
@@ -220,14 +223,13 @@ module.exports = {
     });
   },
 
-  postThreadLikes(data){
-      return new Promise(async (resolve) => {
-        const newLikes = new likesSchema(data);
-        const result = await newLikes.save();
-        resolve(result);
-      }).catch((err) => {
+  postThreadLikes(data) {
+    return new Promise(async (resolve) => {
+      const newLikes = new likesSchema(data);
+      const result = await newLikes.save();
+      resolve(result);
+    }).catch((err) => {
       reject(err);
-      });
-      }
+    });
+  },
 };
-

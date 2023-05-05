@@ -10,5 +10,5 @@ module.exports = (app) => {
   app.route("/getThreadByCategoryId").get(dashboardController.getThreadByCategoryId);
   app.route("/getAllRepliesByThreadId").get(threadController.getAllRepliesByThreadId);
   app.route("/postThreadReply").post(threadController.postThreadReply);
-  app.route("/getLoggedInUser").get(userController.getLoggedInUser);
+  app.route("/postLikes").post(userController.postThreadLikes);
 };

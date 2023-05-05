@@ -20,5 +20,18 @@ module.exports = {
                 reject(err);
             });
         });
+    },
+
+    postThreadLikes(data){
+        return new Promise((resolve,reject)=>{ 
+            utils.postThreadLikes(data).then((err, result)=> {
+                if(result){
+                    resolve(result)
+                }else{
+                    reject(err);
+                }
+            })
+        })
+
     }
 }

@@ -5,6 +5,11 @@ const departmentModel = require("../Schemas/departmentSchema");
 const UserModel = require('../Schemas/userSchema');
 const PostThreadModel = require("../Schemas/createThreadSchema")
 const PostThreadReplyModel = require("../Schemas/createResponseSchema")
+const createResponseSchema = require("../Schemas/createResponseSchema")
+const path = require('path');
+const User = require('../Schemas/userSchema');
+const likesSchema = require('../Schemas/LikesSchema');
+const PostThread = require("../Schemas/createResponseSchema")
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -217,6 +222,16 @@ module.exports = {
     }).catch((err) => {
       reject(err);
     });
-  }
+  },
+
+  postThreadLikes(data){
+      return new Promise(async (resolve) => {
+        const newLikes = new likesSchema(data);
+        const result = await newLikes.save();
+        resolve(result);
+      }).catch((err) => {
+      reject(err);
+      });
+      }
 };
 

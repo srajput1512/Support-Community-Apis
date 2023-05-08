@@ -17,7 +17,7 @@ function runScript(text) {
   return (pythonProcess = spawn("python", [
     path.join(__dirname, `../python-ml/app.py`),
     `${text}`,
-  ]));
+  ],{shell: true}));
 }
 
 module.exports = {
@@ -52,8 +52,8 @@ module.exports = {
   postThread(threadData) {
     return new Promise((resolve, reject) => {
       let isToxOrNontox;
-      const subprocess = runScript(`${threadData.description}`);
-      subprocess.stdout.on("data", (data) => {
+      // const subprocess = runScript(`${threadData.description}`);
+     // subprocess.stdout.on("data", (data) => {
         isToxOrNontox = threadData.toString();
         threadData.isToxic = false;
         const newPost = new PostThreadModel(threadData);
@@ -63,7 +63,7 @@ module.exports = {
             reject(err);
           });
       });
-    });
+    // });
   },
 
   //Get list of deaprtments
@@ -176,12 +176,10 @@ module.exports = {
   postThreadReply(threadReplyData) {
     return new Promise((resolve) => {
       let isToxOrNontox;
-      const subprocess = runScript(`${threadReplyData.description}`);
-      subprocess.stdout.on("data", (data) => {
-        isToxOrNontox = data.toString();
-        threadReplyData.isToxic = isToxOrNontox.includes("non-tox")
-          ? false
-          : true;
+      //const subprocess = runScript(`${threadReplyData.description}`);
+      //subprocess.stdout.on("data", (data) => {
+       // isToxOrNontox = data.toString();
+        threadReplyData.isToxic = false;
         const newPostReply = new PostThreadReplyModel(threadReplyData);
         newPostReply
           .save()
@@ -191,7 +189,7 @@ module.exports = {
           .catch((error) => {
             reject(error);
           });
-      });
+    //  });
     }).catch((err) => {
       reject(err);
     });

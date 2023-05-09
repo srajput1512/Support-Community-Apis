@@ -35,5 +35,14 @@ module.exports = {
       .catch((err) => {
         res.send("Unable to create thread");
       });
-  }
+  },
+
+  postResponseLikes: (req, res, next) => {
+    const data = req.body;   
+    threadModule.postResponseLikes(data).then((result)=>{
+            res.json(result);
+        }).catch((err)=>{
+            res.json(err);
+        });
+      }
 };

@@ -9,17 +9,6 @@ const likesSchema = require("../Schemas/LikesSchema");
 const { spawn } = require("child_process");
 const path = require("path");
 
-/**
- * Run python myscript, pass in `-u` to not buffer console output
- * @return {ChildProcess}
- */
-function runScript(text) {
-  return (pythonProcess = spawn("python", [
-    path.join(__dirname, `../python-ml/app.py`),
-    `${text}`,
-  ]));
-}
-
 module.exports = {
   //Check Connection establish
   establishDbConnection() {
@@ -51,17 +40,39 @@ module.exports = {
 
   postThread(threadData) {
     return new Promise((resolve, reject) => {
-      let isToxOrNontox;
-      const subprocess = runScript(`${threadData.description}`);
-      subprocess.stdout.on("data", (data) => {
-        isToxOrNontox = threadData.toString();
-        threadData.isToxic = false;
+      const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadData.description]);
+      const pythonProcessAdmin = spawn('python', [path.join(__dirname, `../python-ml/index.py`), threadData.description]);
+
+      if (threadData.email) {
+        pythonProcessAdmin.stdout.on('data', (data) => {
+          const response = JSON.parse(data.toString());
+          const predictedDepartment = response.department;
+          console.log(predictedDepartment)
+        });
+
+        pythonProcessAdmin.stderr.on('data', (data) => {
+          console.error(`stderr: ${data}`);
+        });
+
+        pythonProcessAdmin.on('close', (code) => {
+          console.log(`child process exited with code ${code}`);
+        });
+      }
+
+      pythonProcess.stdout.on('data', (data) => {
+        const output = JSON.parse(data);
+        threadData.isToxic = output.toxic;
         const newPost = new PostThreadModel(threadData);
         newPost.save().then((savedPost) => {
-            resolve(savedPost);
-          }).catch((err) => {
-            reject(err);
-          });
+          resolve(savedPost);
+        }).catch((err) => {
+          reject(err);
+        });
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script error: ${data}`);
+        reject(data);
       });
     });
   },
@@ -118,7 +129,6 @@ module.exports = {
         {
           $match: {
             _id: new ObjectId(threadId),
-            isToxic: false,
           },
         },
         {
@@ -152,6 +162,11 @@ module.exports = {
           },
         },
         {
+          $match: {
+            "replies.isToxic": false,
+          },
+        },
+        {
           $group: {
             _id: "$_id",
             subject: { $first: "$subject" },
@@ -173,27 +188,26 @@ module.exports = {
     });
   },
 
+
   postThreadReply(threadReplyData) {
-    return new Promise((resolve) => {
-      let isToxOrNontox;
-      const subprocess = runScript(`${threadReplyData.description}`);
-      subprocess.stdout.on("data", (data) => {
-        isToxOrNontox = data.toString();
-        threadReplyData.isToxic = isToxOrNontox.includes("non-tox")
-          ? false
-          : true;
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadReplyData.description]);
+
+      pythonProcess.stdout.on('data', (data) => {
+        const output = JSON.parse(data);
+        threadReplyData.isToxic = output.toxic;
         const newPostReply = new PostThreadReplyModel(threadReplyData);
-        newPostReply
-          .save()
-          .then((savedPostReply) => {
-            resolve(savedPostReply);
-          })
-          .catch((error) => {
-            reject(error);
-          });
+        newPostReply.save().then((savedPostReply) => {
+          resolve(savedPostReply);
+        }).catch((err) => {
+          reject(err);
+        });
       });
-    }).catch((err) => {
-      reject(err);
+
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script error: ${data}`);
+        reject(data);
+      });
     });
   },
 

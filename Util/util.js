@@ -123,6 +123,14 @@ module.exports = {
             as: "replies",
           },
         },
+        {
+          $lookup: {
+            from: "Likes",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "LikeData"
+          }
+        }
       ]).exec();
       if (response) {
         resolve(response);
@@ -171,6 +179,14 @@ module.exports = {
             as: "user",
           },
         },
+        { 
+          $lookup: {
+          from: "Likes",
+          localField: "_id",
+          foreignField: "parentThreadId",
+          as: "LikeData"
+        }
+      },
         {
           $match: {
             "replies.isToxic": false,
@@ -189,6 +205,7 @@ module.exports = {
             description: { $first: "$description" },
             user: { $first: "$user" },
             replies: { $push: "$replies" },
+            replylikes: { $push: "$LikeData" },
           },
         },
       ]).exec();

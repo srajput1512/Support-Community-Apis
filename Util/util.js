@@ -103,6 +103,14 @@ module.exports = {
             as: "replies",
           },
         },
+        {
+          $lookup: {
+            from: "Likes",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "LikeData"
+          }
+        }
       ]).exec();
       if (response) {
         resolve(response);
@@ -152,6 +160,14 @@ module.exports = {
             as: "user",
           },
         },
+        { 
+          $lookup: {
+          from: "Likes",
+          localField: "_id",
+          foreignField: "parentThreadId",
+          as: "LikeData"
+        }
+      },
         {
           $group: {
             _id: "$_id",
@@ -165,6 +181,7 @@ module.exports = {
             description: { $first: "$description" },
             user: { $first: "$user" },
             replies: { $push: "$replies" },
+            replylikes: { $push: "$LikeData" },
           },
         },
       ]).exec();

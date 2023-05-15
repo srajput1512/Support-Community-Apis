@@ -5,7 +5,8 @@ const responseLikesSchema = new mongoose.Schema({
         type: String
     },
     parentThreadId: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'threads'
     },
     isLiked: {
         type: Boolean

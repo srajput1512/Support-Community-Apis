@@ -103,6 +103,14 @@ module.exports = {
             as: "replies",
           },
         },
+        {
+          $lookup: {
+            from: "Likes",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "LikeData"
+          }
+        }
       ]).exec();
       if (response) {
         resolve(response);

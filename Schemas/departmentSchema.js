@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
 
 const departmentSchema = new mongoose.Schema({
-    CategoryName: {
+    departmentId: {
+        type: String
+    },
+    departmentName: {
+        type: String
+    },
+    email: {
         type: String
     }
 });
 
-module.exports = mongoose.model('Departments', departmentSchema, 'Department');
+module.exports = mongoose.model('department', departmentSchema, 'Department');
 

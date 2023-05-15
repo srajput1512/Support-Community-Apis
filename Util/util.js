@@ -6,6 +6,7 @@ const UserModel = require("../Schemas/userSchema");
 const PostThreadModel = require("../Schemas/createThreadSchema");
 const PostThreadReplyModel = require("../Schemas/createResponseSchema");
 const likesSchema = require("../Schemas/LikesSchema");
+const responseLikesSchema = require("../Schemas/responseLikesSchema");
 const { spawn } = require("child_process");
 const path = require("path");
 
@@ -41,21 +42,24 @@ module.exports = {
   postThread(threadData) {
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadData.description]);
-      const pythonProcessAdmin = spawn('python', [path.join(__dirname, `../python-ml/index.py`), threadData.description]);
-
       if (threadData.email) {
+        const pythonProcessAdmin = spawn('python', [path.join(__dirname, `../python-ml/index.py`), threadData.description]);
+
         pythonProcessAdmin.stdout.on('data', (data) => {
           const response = JSON.parse(data.toString());
-          const predictedDepartment = response.department;
-          console.log(predictedDepartment)
-        });
-
-        pythonProcessAdmin.stderr.on('data', (data) => {
-          console.error(`stderr: ${data}`);
-        });
-
-        pythonProcessAdmin.on('close', (code) => {
-          console.log(`child process exited with code ${code}`);
+          const departmentName = response.department;
+          departmentModel.find({ departmentName: departmentName })
+            .then((department) => {
+              if (department) {
+                const departMentemail = department[0].email;
+                threadData.departMentemail = departMentemail;
+              } else {
+                console.log(`Department with name ${departmentName} not found`);
+              }
+            })
+            .catch((err) => {
+              console.error(`Error fetching department: ${err}`);
+            });
         });
       }
 
@@ -64,7 +68,11 @@ module.exports = {
         threadData.isToxic = output.toxic;
         const newPost = new PostThreadModel(threadData);
         newPost.save().then((savedPost) => {
-          resolve(savedPost);
+          if (threadData.departMentemail) {
+            console.log(threadData.departMentemail);
+            savedPost.departmentEmail = threadData.departMentemail || null;
+          }
+          resolve(threadData);
         }).catch((err) => {
           reject(err);
         });
@@ -76,6 +84,8 @@ module.exports = {
       });
     });
   },
+
+
 
   //Get list of deaprtments
   getAllDepartments() {
@@ -240,6 +250,16 @@ module.exports = {
   postThreadLikes(data) {
     return new Promise(async (resolve) => {
       const newLikes = new likesSchema(data);
+      const result = await newLikes.save();
+      resolve(result);
+    }).catch((err) => {
+      reject(err);
+    });
+  },
+
+  postResponseLikes(data) {
+    return new Promise(async (resolve) => {
+      const newLikes = new responseLikesSchema(data);
       const result = await newLikes.save();
       resolve(result);
     }).catch((err) => {

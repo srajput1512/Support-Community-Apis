@@ -37,6 +37,7 @@ if predicted_department in departments:
 else:
     response = {'department': 'no department found'}
 
+
 # Serialize the predicted department as JSON and write to stdout
 sys.stdout.write(json.dumps(response))
 sys.stdout.flush()

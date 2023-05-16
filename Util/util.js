@@ -69,7 +69,6 @@ module.exports = {
         const newPost = new PostThreadModel(threadData);
         newPost.save().then((savedPost) => {
           if (threadData.departMentemail) {
-            console.log(threadData.departMentemail);
             savedPost.departmentEmail = threadData.departMentemail || null;
           }
           resolve(threadData);

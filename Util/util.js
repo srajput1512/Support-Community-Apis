@@ -10,17 +10,6 @@ const responseLikesSchema = require("../Schemas/responseLikesSchema");
 const { spawn } = require("child_process");
 const path = require("path");
 
-/**
- * Run python myscript, pass in `-u` to not buffer console output
- * @return {ChildProcess}
- */
-function runScript(text) {
-  return (pythonProcess = spawn("python", [
-    path.join(__dirname, `../python-ml/app.py`),
-    `${text}`,
-  ],{shell: true}));
-}
-
 module.exports = {
   //Check Connection establish
   establishDbConnection() {
@@ -52,20 +41,50 @@ module.exports = {
 
   postThread(threadData) {
     return new Promise((resolve, reject) => {
-      let isToxOrNontox;
-      // const subprocess = runScript(`${threadData.description}`);
-     // subprocess.stdout.on("data", (data) => {
-        isToxOrNontox = threadData.toString();
-        threadData.isToxic = false;
+      const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadData.description]);
+      if (threadData.email) {
+        const pythonProcessAdmin = spawn('python', [path.join(__dirname, `../python-ml/index.py`), threadData.description]);
+
+        pythonProcessAdmin.stdout.on('data', (data) => {
+          const response = JSON.parse(data.toString());
+          const departmentName = response.department;
+          departmentModel.find({ departmentName: departmentName })
+            .then((department) => {
+              if (department) {
+                const departMentemail = department[0].email;
+                threadData.departMentemail = departMentemail;
+              } else {
+                console.log(`Department with name ${departmentName} not found`);
+              }
+            })
+            .catch((err) => {
+              console.error(`Error fetching department: ${err}`);
+            });
+        });
+      }
+
+      pythonProcess.stdout.on('data', (data) => {
+        const output = JSON.parse(data);
+        threadData.isToxic = output.toxic;
         const newPost = new PostThreadModel(threadData);
         newPost.save().then((savedPost) => {
-            resolve(savedPost);
-          }).catch((err) => {
-            reject(err);
-          });
+          if (threadData.departMentemail) {
+            savedPost.departmentEmail = threadData.departMentemail || null;
+          }
+          resolve(threadData);
+        }).catch((err) => {
+          reject(err);
+        });
       });
-    // });
+
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script error: ${data}`);
+        reject(data);
+      });
+    });
   },
+
+
 
   //Get list of deaprtments
   getAllDepartments() {
@@ -127,7 +146,6 @@ module.exports = {
         {
           $match: {
             _id: new ObjectId(threadId),
-            isToxic: false,
           },
         },
         {
@@ -169,6 +187,11 @@ module.exports = {
         }
       },
         {
+          $match: {
+            "replies.isToxic": false,
+          },
+        },
+        {
           $group: {
             _id: "$_id",
             subject: { $first: "$subject" },
@@ -191,25 +214,26 @@ module.exports = {
     });
   },
 
+
   postThreadReply(threadReplyData) {
-    return new Promise((resolve) => {
-      let isToxOrNontox;
-      //const subprocess = runScript(`${threadReplyData.description}`);
-      //subprocess.stdout.on("data", (data) => {
-       // isToxOrNontox = data.toString();
-        threadReplyData.isToxic = false;
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadReplyData.description]);
+
+      pythonProcess.stdout.on('data', (data) => {
+        const output = JSON.parse(data);
+        threadReplyData.isToxic = output.toxic;
         const newPostReply = new PostThreadReplyModel(threadReplyData);
-        newPostReply
-          .save()
-          .then((savedPostReply) => {
-            resolve(savedPostReply);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-    //  });
-    }).catch((err) => {
-      reject(err);
+        newPostReply.save().then((savedPostReply) => {
+          resolve(savedPostReply);
+        }).catch((err) => {
+          reject(err);
+        });
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python script error: ${data}`);
+        reject(data);
+      });
     });
   },
 

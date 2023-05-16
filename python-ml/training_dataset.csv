@@ -1,0 +1,31 @@
+department,description
+Accounts,Can't log in to my account
+Accounts,My account was hacked
+Accounts,Billing issue with my account
+Accounts,Can't reset my account password
+Accounts,My account was locked
+Accounts,Issue with account balance
+Accounts,Need to update account information
+Accounts,Can't access account on mobile app
+Accounts,Issue with account subscription
+Accounts,My account was suspended
+Finance,Problem with billing statement
+Finance,Payment declined on my account
+Finance,Issue with automatic payment setup
+Finance,Can't access account balance
+Finance,Need to update payment information
+Finance,Missing transaction on account statement
+Finance,Charge on account that I don't recognize
+Finance,Transaction posted to wrong account
+Finance,Error in online payment system
+Finance,Need help with wire transfer
+Sales,Issue with order status
+Sales,Problem with product shipment
+Sales,Need help finding the right product
+Sales,Unable to apply discount code
+Sales,Question about pricing or fees
+Sales,Product doesn't meet expectations
+Sales,Issue with product warranty or return policy
+Sales,Need to cancel an order or subscription
+Sales,Error message during checkout process
+Sales,Need help with product customization

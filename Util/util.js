@@ -142,83 +142,90 @@ module.exports = {
   //Get thread details by thread ID
   getAllRepliesByThreadId(threadId) {
     return new Promise(async (resolve, reject) => {
-      const result = await PostThreadModel.aggregate([
-        {
-          $match: {
-            _id: new ObjectId(threadId),
+      try {
+        const result = await PostThreadModel.aggregate([
+          {
+            $match: {
+              _id: new ObjectId(threadId),
+            },
           },
-        },
-        {
-          $lookup: {
-            from: "Reply",
-            localField: "_id",
-            foreignField: "parentThreadId",
-            as: "replies",
+          {
+            $lookup: {
+              from: "Reply",
+              localField: "_id",
+              foreignField: "parentThreadId",
+              as: "replies",
+            },
           },
-        },
-        {
-          $unwind: {
-            path: "$replies",
-            preserveNullAndEmptyArrays: true,
+          {
+            $unwind: {
+              path: "$replies",
+              preserveNullAndEmptyArrays: true,
+            },
           },
-        },
-        {
-          $lookup: {
-            from: "User",
-            localField: "replies.userId",
-            foreignField: "userId",
-            as: "replies.user",
+          {
+            $lookup: {
+              from: "User",
+              localField: "replies.userId",
+              foreignField: "userId",
+              as: "replies.user",
+            },
           },
-        },
-        {
-          $lookup: {
-            from: "User",
-            localField: "userId",
-            foreignField: "userId",
-            as: "user",
+          {
+            $lookup: {
+              from: "User",
+              localField: "userId",
+              foreignField: "userId",
+              as: "user",
+            },
           },
-        },
-        { 
-          $lookup: {
-          from: "Likes",
-          localField: "_id",
-          foreignField: "parentThreadId",
-          as: "LikeData"
-        }
-      },
-        {
-          $match: {
-            "replies.isToxic": false,
+          {
+            $lookup: {
+              from: "Likes",
+              localField: "_id",
+              foreignField: "parentThreadId",
+              as: "likes",
+            },
           },
-        },
-        {
-          $group: {
-            _id: "$_id",
-            subject: { $first: "$subject" },
-            categoryID: { $first: "$categoryID" },
-            document: { $first: "$document" },
-            departmentID: { $first: "$departmentID" },
-            isToxic: { $first: "$isToxic" },
-            postedDateTime: { $first: "$postedDateTime" },
-            userId: { $first: "$userId" },
-            description: { $first: "$description" },
-            user: { $first: "$user" },
-            replies: { $push: "$replies" },
-            replylikes: { $push: "$LikeData" },
+          {
+            $match: {
+              $or: [
+                { "replies.isToxic": false },
+                { replies: { $exists: false } },
+                { replies: { $size: 0 } },
+                { likes: { $exists: false } },
+                { likes: { $size: 0 } },
+              ],
+            },
           },
-        },
-      ]).exec();
-      resolve(result);
-    }).catch((err) => {
-      reject(err);
+          {
+            $group: {
+              _id: "$_id",
+              subject: { $first: "$subject" },
+              categoryID: { $first: "$categoryID" },
+              document: { $first: "$document" },
+              departmentID: { $first: "$departmentID" },
+              isToxic: { $first: "$isToxic" },
+              postedDateTime: { $first: "$postedDateTime" },
+              userId: { $first: "$userId" },
+              description: { $first: "$description" },
+              user: { $first: "$user" },
+              replies: { $push: "$replies" },
+              likes: { $push: "$likes" },
+            },
+          },
+        ]).exec();
+
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
     });
   },
-
 
   postThreadReply(threadReplyData) {
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadReplyData.description]);
-
       pythonProcess.stdout.on('data', (data) => {
         const output = JSON.parse(data);
         threadReplyData.isToxic = output.toxic;
@@ -239,17 +246,23 @@ module.exports = {
 
   /** POST USER DATA */
   postUser(userData) {
-    return new Promise(async (resolve) => {
-      const isUserExist = await UserModel.find({ userId: userData.userId });
-      if (isUserExist.length === 0) {
-        const newUser = new UserModel(userData);
-        const savedUser = await newUser.save();
-        resolve(savedUser);
-      } else {
-        resolve(isUserExist);
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (userData.userId !== undefined && userData.userId !== null && userData.userId !== '') {
+          const isUserExist = await UserModel.find({ userId: userData.userId });
+          if (isUserExist.length === 0) {
+            const newUser = new UserModel(userData);
+            const savedUser = await newUser.save();
+            resolve(savedUser);
+          } else {
+            resolve(userData);
+          }
+        } else {
+          reject(new Error('Invalid user data. User ID is required.'));
+        }
+      } catch (error) {
+        reject(error);
       }
-    }).catch((err) => {
-      reject(err);
     });
   },
 

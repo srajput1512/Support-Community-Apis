@@ -25,6 +25,9 @@ const postThreadSchema = new mongoose.Schema({
     },
     description: {
         type: String
+    },
+    isAllowed:{
+        type:Boolean
     }
 });
 

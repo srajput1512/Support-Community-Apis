@@ -66,6 +66,7 @@ module.exports = {
       pythonProcess.stdout.on('data', (data) => {
         const output = JSON.parse(data);
         threadData.isToxic = output.toxic;
+        threadData.isAllowed = true;
         const newPost = new PostThreadModel(threadData);
         newPost.save().then((savedPost) => {
           if (threadData.departMentemail) {

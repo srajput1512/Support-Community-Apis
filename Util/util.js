@@ -350,12 +350,22 @@
 
       postResponseLikes(data) {
         return new Promise(async (resolve) => {
-          const newLikes = new responseLikesSchema(data);
-          const result = await newLikes.save();
-          resolve(result);
-        }).catch((err) => {
-          reject(err);
-        });
+          try {
+            const existingLike = await responseLikesSchema.findOne({
+              parentThreadId: data.parentThreadId,
+            });
+            if (existingLike) {
+              const result = await existingLike.deleteOne();
+              resolve(result);
+            } else {
+              const newLikes = new responseLikesSchema(data);
+              const result = await newLikes.save();
+              resolve(result);
+            }
+          } catch (err) {
+            reject(err);
+          }
+        })
       },
     };
     

@@ -7,6 +7,8 @@ const PostThreadModel = require("../Schemas/createThreadSchema");
 const PostThreadReplyModel = require("../Schemas/createResponseSchema");
 const likesSchema = require("../Schemas/LikesSchema");
 const responseLikesSchema = require("../Schemas/responseLikesSchema");
+const uploadFileSchema = require("../Schemas/uploadFileSchema");
+const uploadFileReplySchema = require("../Schemas/replyUploadFileSchema");
 const { spawn } = require("child_process");
 const path = require("path");
 
@@ -71,6 +73,17 @@ module.exports = {
           if (threadData.departMentemail) {
             savedPost.departmentEmail = threadData.departMentemail || null;
           }
+          if (threadData.document && threadData.document.length > 0) {
+            let fileUpload = {
+              threadId: savedPost._id,
+              fileContents: threadData.document[0].fileContents,
+              fileName: threadData.document[0].fileName,
+              fileTitle: threadData.document[0].fileTitle
+            }
+            const newPostfileUplaod = new uploadFileSchema(fileUpload);
+            newPostfileUplaod.save();
+          }
+          console.log(savedPost)
           resolve(threadData);
         }).catch((err) => {
           reject(err);
@@ -83,8 +96,6 @@ module.exports = {
       });
     });
   },
-
-
 
   //Get list of deaprtments
   getAllDepartments() {
@@ -224,25 +235,39 @@ module.exports = {
   },
 
   postThreadReply(threadReplyData) {
+    console.log(threadReplyData);
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn('python', [path.join(__dirname, `../python-ml/app.py`), threadReplyData.description]);
+      const pythonProcess = spawn('python', [path.join(__dirname, '../python-ml/app.py'), threadReplyData.description]);
       pythonProcess.stdout.on('data', (data) => {
         const output = JSON.parse(data);
         threadReplyData.isToxic = output.toxic;
         const newPostReply = new PostThreadReplyModel(threadReplyData);
-        newPostReply.save().then((savedPostReply) => {
-          resolve(savedPostReply);
-        }).catch((err) => {
-          reject(err);
-        });
+        newPostReply.save()
+          .then((savedPostReply) => {
+            if (threadReplyData.document && threadReplyData.document.length > 0) {
+              let fileUpload = {
+                replyThreadId: savedPostReply._id,
+                fileContents: threadReplyData.document[0].fileContents,
+                fileName: threadReplyData.document[0].fileName,
+                fileTitle: threadReplyData.document[0].fileTitle
+              };
+              const newPostfileUpload = new uploadFileReplySchema(fileUpload);
+              newPostfileUpload.save();
+            }
+            resolve(savedPostReply);
+          })
+          .catch((err) => {
+            reject(err);
+          });
       });
-
+  
       pythonProcess.stderr.on('data', (data) => {
         console.error(`Python script error: ${data}`);
         reject(data);
       });
     });
   },
+  
 
   /** POST USER DATA */
   postUser(userData) {

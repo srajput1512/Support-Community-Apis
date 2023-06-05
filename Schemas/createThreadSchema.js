@@ -8,9 +8,6 @@ const postThreadSchema = new mongoose.Schema({
     categoryID: {
         type: String
     },
-    document: {
-        type: String
-    },
     departmentID: {
         type: String
     },

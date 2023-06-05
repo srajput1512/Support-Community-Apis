@@ -354,7 +354,8 @@
           try {
             const existingLike = await responseLikesSchema.findOne({
               parentThreadId: data.parentThreadId,
-              userId: data.userId
+              userId: data.userId,
+              _id: data._id
             });
             if (existingLike) {
               const result = await existingLike.deleteOne();

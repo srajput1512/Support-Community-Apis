@@ -202,8 +202,14 @@
               {
                 $lookup: {
                   from: "ResponseLikes",
-                  localField: "parentThreadId",
-                  foreignField: "replies._id",
+                  let: { replyId: "$replies._id" },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: { $eq: ["$parentThreadId", "$$replyId"] }
+                      }
+                    }
+                  ],
                   as: "replies.replylikes",
                 },
               },
@@ -350,18 +356,23 @@
       },
 
       postResponseLikes(data) {
+        const payload = {
+          parentThreadId: data.parentThreadId,
+          userId: data.userId,
+          isLiked: true
+        }
         return new Promise(async (resolve) => {
           try {
             const existingLike = await responseLikesSchema.findOne({
               parentThreadId: data.parentThreadId,
               userId: data.userId,
-              _id: data._id
+              // _id: data._id
             });
             if (existingLike) {
               const result = await existingLike.deleteOne();
               resolve(result);
             } else {
-              const newLikes = new responseLikesSchema(data);
+              const newLikes = new responseLikesSchema(payload);
               const result = await newLikes.save();
               resolve(result);
             }

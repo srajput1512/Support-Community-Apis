@@ -83,7 +83,6 @@ module.exports = {
             const newPostfileUplaod = new uploadFileSchema(fileUpload);
             newPostfileUplaod.save();
           }
-          console.log(savedPost)
           resolve(threadData);
         }).catch((err) => {
           reject(err);
@@ -152,90 +151,139 @@ module.exports = {
 
   //Get thread details by thread ID
   getAllRepliesByThreadId(threadId) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const result = await PostThreadModel.aggregate([
-          {
-            $match: {
-              _id: new ObjectId(threadId),
+  return new Promise(async (resolve, reject) => {
+    try {
+      const result = await PostThreadModel.aggregate([
+        {
+          $match: {
+            _id: new ObjectId(threadId),
+          },
+        },
+        {
+          $lookup: {
+            from: "Reply",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "replies",
+          },
+        },
+        {
+          $unwind: {
+            path: "$replies",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "User",
+            localField: "replies.userId",
+            foreignField: "userId",
+            as: "replies.user",
+          },
+        },
+        {
+          $lookup: {
+            from: "User",
+            localField: "userId",
+            foreignField: "userId",
+            as: "user",
+          },
+        },
+        {
+          $lookup: {
+            from: "Likes",
+            localField: "_id",
+            foreignField: "parentThreadId",
+            as: "likes",
+          },
+        },
+        {
+          $lookup: {
+            from: "ResponseLikes",
+            let: { replyId: "$replies._id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ["$parentThreadId", "$$replyId"] },
+                  isToxic: { $ne: true },
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  parentThreadId: 0,
+                },
+              },
+            ],
+            as: "replies.replylikes",
+          },
+        },
+        {
+          $match: {
+            "replies.isToxic": { $ne: true },
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            subject: { $first: "$subject" },
+            categoryID: { $first: "$categoryID" },
+            document: { $first: "$document" },
+            departmentID: { $first: "$departmentID" },
+            isToxic: { $first: "$isToxic" },
+            postedDateTime: { $first: "$postedDateTime" },
+            userId: { $first: "$userId" },
+            description: { $first: "$description" },
+            user: { $first: "$user" },
+            replies: { $push: "$replies" },
+            likes: { $first: "$likes" },
+          },
+        },
+        {
+          $addFields: {
+            likes: {
+              $ifNull: ["$likes", []],
             },
           },
-          {
-            $lookup: {
-              from: "Reply",
-              localField: "_id",
-              foreignField: "parentThreadId",
-              as: "replies",
+        },
+        {
+          $project: {
+            _id: 1,
+            subject: 1,
+            categoryID: 1,
+            document: 1,
+            departmentID: 1,
+            isToxic: 1,
+            postedDateTime: 1,
+            userId: 1,
+            description: 1,
+            user: 1,
+            replies: {
+              $map: {
+                input: "$replies",
+                as: "reply",
+                in: {
+                  $mergeObjects: [
+                    "$$reply",
+                    {
+                      replylikes: "$$reply.replylikes",
+                    },
+                  ],
+                },
+              },
             },
+            likes: 1,
           },
-          {
-            $unwind: {
-              path: "$replies",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $lookup: {
-              from: "User",
-              localField: "replies.userId",
-              foreignField: "userId",
-              as: "replies.user",
-            },
-          },
-          {
-            $lookup: {
-              from: "User",
-              localField: "userId",
-              foreignField: "userId",
-              as: "user",
-            },
-          },
-          {
-            $lookup: {
-              from: "Likes",
-              localField: "_id",
-              foreignField: "parentThreadId",
-              as: "likes",
-            },
-          },
-          {
-            $match: {
-              $or: [
-                { "replies.isToxic": false },
-                { replies: { $exists: false } },
-                { replies: { $size: 0 } },
-                { likes: { $exists: false } },
-                { likes: { $size: 0 } },
-              ],
-            },
-          },
-          {
-            $group: {
-              _id: "$_id",
-              subject: { $first: "$subject" },
-              categoryID: { $first: "$categoryID" },
-              document: { $first: "$document" },
-              departmentID: { $first: "$departmentID" },
-              isToxic: { $first: "$isToxic" },
-              postedDateTime: { $first: "$postedDateTime" },
-              userId: { $first: "$userId" },
-              description: { $first: "$description" },
-              user: { $first: "$user" },
-              replies: { $push: "$replies" },
-              likes: { $push: "$likes" },
-            },
-          },
-        ]).exec();
-
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  },
-
-  postThreadReply(threadReplyData) {
-    console.log(threadReplyData);
+        },
+      ]).exec();
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    }
+  });
+},
+  
+postThreadReply(threadReplyData) {
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn('python', [path.join(__dirname, '../python-ml/app.py'), threadReplyData.description]);
       pythonProcess.stdout.on('data', (data) => {
@@ -247,6 +295,7 @@ module.exports = {
             if (threadReplyData.document && threadReplyData.document.length > 0) {
               let fileUpload = {
                 replyThreadId: savedPostReply._id,
+                userId: savedPostReply.userId,
                 fileContents: threadReplyData.document[0].fileContents,
                 fileName: threadReplyData.document[0].fileName,
                 fileTitle: threadReplyData.document[0].fileTitle
@@ -260,14 +309,14 @@ module.exports = {
             reject(err);
           });
       });
-  
+
       pythonProcess.stderr.on('data', (data) => {
         console.error(`Python script error: ${data}`);
         reject(data);
       });
     });
   },
-  
+
 
   /** POST USER DATA */
   postUser(userData) {
@@ -302,22 +351,50 @@ module.exports = {
   },
 
   postThreadLikes(data) {
-    return new Promise(async (resolve) => {
-      const newLikes = new likesSchema(data);
-      const result = await newLikes.save();
-      resolve(result);
-    }).catch((err) => {
-      reject(err);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const existingLike = await likesSchema.findOne({
+          parentThreadId: data.parentThreadId,
+          userId: data.userId
+        });
+        if (existingLike) {
+          const result = await existingLike.deleteOne();
+          resolve(null);
+        } else {
+          const newLikes = new likesSchema(data);
+          const result = await newLikes.save();
+          resolve(result);
+        }
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
   postResponseLikes(data) {
+    const payload = {
+      parentThreadId: data.parentThreadId,
+      userId: data.userId,
+      replyId: data.replyId
+    }
     return new Promise(async (resolve) => {
-      const newLikes = new responseLikesSchema(data);
-      const result = await newLikes.save();
-      resolve(result);
-    }).catch((err) => {
-      reject(err);
-    });
+      try {
+        const existingLike = await responseLikesSchema.findOne({
+          parentThreadId: data.parentThreadId,
+          userId: data.userId,
+          replyId: data.replyId
+        });
+        if (existingLike) {
+          const result = await existingLike.deleteOne();
+          resolve(null);
+        } else {
+          const newLikes = new responseLikesSchema(payload);
+          const result = await newLikes.save();
+          resolve(result);
+        }
+      } catch (err) {
+        reject(err);
+      }
+    })
   },
 };

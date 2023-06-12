@@ -20,7 +20,10 @@ const postThreadReplySchema = new mongoose.Schema({
   },
   description: {
     type: String
-  }
+  },
+  isAllowed:{
+    type:Boolean
+}
 }, { strict: true });
 
 module.exports = mongoose.model('replies', postThreadReplySchema, 'Reply');

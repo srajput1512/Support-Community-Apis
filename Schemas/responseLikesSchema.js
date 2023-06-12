@@ -11,6 +11,9 @@ const responseLikesSchema = new mongoose.Schema({
     isLiked: {
         type: Boolean
     },
+    replyId: {
+        type: mongoose.Schema.Types.ObjectId
+    }
 });
 
 module.exports = mongoose.model('responselike', responseLikesSchema, 'ResponseLikes');

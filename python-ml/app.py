@@ -2,15 +2,15 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-import requests
 from textblob import TextBlob
 import sys
 import json
+import os
 
-# Define function to retrieve keyword list from URL
-def get_keywords(url):
-    response = requests.get(url)
-    keywords = response.text.split('\n')
+# Define function to retrieve keyword list from file
+def get_keywords(file_path):
+    with open(file_path, 'r') as file:
+        keywords = file.read().split('\n')
     return [word.lower() for word in keywords if word.strip()]
 
 # Define function to detect toxic language in text
@@ -50,19 +50,21 @@ def detect_toxicity(text, abusive_keywords, racist_keywords, threat_keywords, id
         
     return toxic, polarity, subjectivity
 
-# Retrieve keyword lists from URLs
-abusive_url = ' https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en'
-racist_url = 'https://raw.githubusercontent.com/shutterstock/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en'
-threat_url = 'https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en'
-idiot_url = 'https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en'
+# Retrieve keyword lists from files
+dir_path = os.path.dirname(os.path.abspath(__file__))
+abusive_url = os.path.join(dir_path, 'files/abusive_url.txt')
+racist_url = os.path.join(dir_path, 'files/racist_url.txt')
+threat_url = os.path.join(dir_path, 'files/threat_url.txt')
+idiot_url = os.path.join(dir_path, 'files/idiot_url.txt')
 
 abusive_keywords = get_keywords(abusive_url)
 racist_keywords = get_keywords(racist_url)
 threat_keywords = get_keywords(threat_url)
 idiot_keywords = get_keywords(idiot_url)
-
+idiot_keywords += ['fool', 'foolish', 'dumb']
 # Load dataset
-df = pd.read_csv('https://raw.githubusercontent.com/t-davidson/hate-speech-and-offensive-language/master/data/labeled_data.csv')
+df_path = os.path.join(dir_path, 'files/df.txt')
+df = pd.read_csv(df_path)
 
 # Extract comment text and toxicity label
 df = df[['tweet', 'class']]
@@ -79,7 +81,6 @@ y = df['label']
 # Train logistic regression model to predict toxicity labels based on feature matrix
 model = LogisticRegression()
 model.fit(X, y)
-
 
 # Read input comment from command line arguments
 comment = sys.argv[1]

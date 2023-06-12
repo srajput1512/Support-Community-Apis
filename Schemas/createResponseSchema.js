@@ -9,9 +9,6 @@ const postThreadReplySchema = new mongoose.Schema({
   replyHelpful: {
     type: Boolean
   },
-  document: {
-    type: String
-  },
   isToxic: {
     type: Boolean
   },
